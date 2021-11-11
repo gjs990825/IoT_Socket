@@ -62,8 +62,6 @@ void Beep_Setup();
 void Beep_Flip();
 
 void OLED_Setup();
-// void OLED_LOG(char *str, ...);
-#define OLED_LOG(format, ...) 
 void BMP280_Setup();
 uint16_t Photoresistor_GetRaw();
 float Photoresistor_GetVoltage();

@@ -128,24 +128,6 @@ void OLED_Setup() {
     OLED.display();
 }
 
-// void OLED_LOG(char *str, ...)
-// {
-//     uint16_t len;
-//     uint8_t buf[64];
-//     va_list ap;
-//     va_start(ap, str);
-//     vsprintf((char *)buf, str, ap);
-//     va_end(ap);
-//     buf[63] = '\0';
-//     OLED.setTextSize(0);
-//     if (OLED.getCursorY() >= 64) {
-//         OLED.setCursor(0, 0);
-//         OLED.clearDisplay();
-//     }
-//     OLED.print((const char *)buf);
-//     OLED.display();
-// }
-
 Adafruit_BMP280 BMP280;
 
 void BMP280_Setup() {
@@ -174,8 +156,17 @@ void Preferences_Init() {
     ssid = preferences.getString("pref_ssid");
     password = preferences.getString("pref_pass");
     timeStamp = preferences.getLong("pref_time_stamp");
-    log_i("Preferences restored: ssid:\"%s\" pass:\"%s\", time:%d", 
+    log_i("Preferences restored: ssid:\"%s\" password:\"%s\", time:%d", 
         ssid.c_str(), password.c_str(), timeStamp);
+}
+
+void Preferences_UpdateWIFISetting(String ssid, String password) {
+    preferences.putString("pref_ssid", ssid);
+    preferences.putString("pref_pass", password);
+}
+
+void Preferences_UpdateTimeStamp(long t) {
+    preferences.putLong("pref_time_stamp", t);
 }
 
 bool WIFI_Setup() {
@@ -217,8 +208,7 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
             ssid = ssidBuf;
             password = (res == 1) ? "" : passwordBuf;
             if (WIFI_Setup()) {
-                preferences.putString("pref_ssid", ssid);
-                preferences.putString("pref_pass", password);
+                Preferences_UpdateWIFISetting(ssid, password);
                 log_i("WIFI config updated");
             }
         }
@@ -243,7 +233,7 @@ void updateTimePreference() {
     timeval epoch;
     gettimeofday(&epoch, 0);
     if (epoch.tv_sec > 1577836800) { // 2020.01.01
-        preferences.putLong("pref_time_stamp", epoch.tv_sec);
+        Preferences_UpdateTimeStamp(epoch.tv_sec);
         log_i("Time preference updated.");
     } 
 }

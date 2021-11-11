@@ -233,7 +233,7 @@ void alarm_add(const char *s) {
         return;
     }
     ss.remove(0, action_s.length() + isoneshot_s.length() + 2);
-    log_d("Add alarm With s:\"%s\", action:%s, isoneshot:%d\n", ss.c_str(), action, isoneshot);
+    log_d("Add alarm With s:\"%s\", action:%s, isoneshot:%d\n", ss.c_str(), action, oneshot);
     alarm_add(ss.c_str(), (void(*)(void))func, oneshot);
     log_i("Alarm add Succeeded!");
 }
