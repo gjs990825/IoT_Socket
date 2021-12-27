@@ -20,6 +20,10 @@ static const int OLED_CLK = 14,
                  OLED_DC = 4,
                  OLED_CS = 15;
 
+static const int IR_OUT_PIN = 26;
+static const int IR_IN_PIN = 19;
+
+
 // Peripherals
 extern Adafruit_SSD1306 OLED;
 extern Adafruit_BMP280 BMP280;
