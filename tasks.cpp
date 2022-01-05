@@ -255,6 +255,14 @@ int alarm_get_count() {
     return count;
 }
 
+bool setting_apply(String setting) {
+    if (setting.startsWith("Wi-Fi ")) {
+        setting.replace("Wi-Fi ", "");
+        return Preferences_UpdateWIFISetting(setting);
+    }
+    return true;
+}
+
 void reset_to_default_state() {
     task_clear();
     alarm_clear();

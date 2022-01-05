@@ -19,5 +19,6 @@ bool test_server_connection();
 static const char *taskPrefix = "Task ";
 static const char *alarmPrefix = "Alarm ";
 static const char *deletePrefix = "Delete ";
+static const char *settingPrefix = "Setting ";
 
 #endif // _INTERATIONS_H_

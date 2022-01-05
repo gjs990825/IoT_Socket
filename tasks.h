@@ -27,6 +27,8 @@ void alarm_add(const char *s);
 void alarm_clear();
 int alarm_get_count();
 
+bool setting_apply(String setting);
+
 void reset_to_default_state();
 
 String get_state_string();

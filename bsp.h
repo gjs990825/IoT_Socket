@@ -71,6 +71,8 @@ uint16_t Photoresistor_GetRaw();
 float Photoresistor_GetVoltage();
 
 void Preferences_Init();
+bool Preferences_UpdateWIFISetting(String setting);
+bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password);
 void updateTimePreference();
 void BlueTooth_Setup();
 bool WIFI_Setup();

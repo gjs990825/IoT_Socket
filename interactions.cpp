@@ -99,6 +99,10 @@ void Get_Command() {
             log_d("Handleing pending Alarm...");
             payload.replace(alarmPrefix, "");
             alarm_add(payload.c_str());
+        } else if (payload.startsWith(settingPrefix)) {
+            log_d("Handleing pending Setting...");
+            payload.replace(settingPrefix, "");
+            setting_apply(payload);
         }
     } else {
         log_e("Error code: %d", httpResponseCode);

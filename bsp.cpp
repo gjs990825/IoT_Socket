@@ -160,9 +160,27 @@ void Preferences_Init() {
         ssid.c_str(), password.c_str(), timeStamp);
 }
 
-void Preferences_UpdateWIFISetting(String ssid, String password) {
-    preferences.putString("pref_ssid", ssid);
-    preferences.putString("pref_pass", password);
+bool Preferences_UpdateWIFISetting(String setting) {
+    char ssidBuf[20], passwordBuf[20];
+    int res = sscanf(setting.c_str(), "SSID:%s PASS:%s", ssidBuf, passwordBuf);
+    if (res >= 1) {
+        if (res == 1) passwordBuf[0] = '\0';
+        return Preferences_UpdateWIFISetting(ssidBuf, passwordBuf);
+    }
+    return false;
+}
+
+bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password) {
+    ssid = _ssid; password = _password;
+    if (WIFI_Setup()) {
+        preferences.putString("pref_ssid", ssid);
+        preferences.putString("pref_pass", password);
+        log_i("Wi-Fi setting updated");
+        return true;
+    } else {
+        log_e("Wi-Fi setting invalid");
+        return false;
+    }
 }
 
 void Preferences_UpdateTimeStamp(long t) {
@@ -200,19 +218,8 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     {
         String btString = SerialBT.readString();
         log_i("BT:%s", btString.c_str());
-        SerialBT.printf("%s\n", btString.c_str());
-
-        char ssidBuf[20], passwordBuf[20];
-        int res = sscanf(btString.c_str(), "SSID:%s PASS:%s", ssidBuf, passwordBuf);
-        if (res >= 1) {
-            ssid = ssidBuf;
-            password = (res == 1) ? "" : passwordBuf;
-            if (WIFI_Setup()) {
-                Preferences_UpdateWIFISetting(ssid, password);
-                log_i("WIFI config updated");
-            }
-        }
-        log_i("SSID:%s,PASS:%s", ssidBuf, passwordBuf);
+        SerialBT.printf(":\"%s\"\n", btString.c_str());
+        Preferences_UpdateWIFISetting(btString);
     }
     if (event == ESP_SPP_CL_INIT_EVT) {
         log_i("BT Connected");
