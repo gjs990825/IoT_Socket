@@ -5,6 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Preferences.h>
 #include <BluetoothSerial.h>
+#include "infrared.h"
 
 static const int LED1_CHANNEL = 0;
 
@@ -158,6 +159,7 @@ void Preferences_Init() {
     timeStamp = preferences.getLong("pref_time_stamp");
     log_i("Preferences restored: ssid:\"%s\" password:\"%s\", time:%d", 
         ssid.c_str(), password.c_str(), timeStamp);
+    Infrared_RestorePreset(preferences);
 }
 
 bool Preferences_UpdateWIFISetting(String setting) {

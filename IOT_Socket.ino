@@ -3,6 +3,10 @@
 #include "interactions.h"
 #include "tasks.h"
 #include <CronAlarms.h>
+#include "infrared.h"
+
+#include <Preferences.h>
+extern Preferences preferences;
 
 void setup() {
     // Basic peripheral
@@ -41,6 +45,42 @@ void OLED_UpdateInfo() {
     OLED.display();
 }
 
+bool infrared_capture_flag = false;
+
+void key1_press() {
+    log_i("key1 press");
+    
+    Relay_Flip();
+}
+
+void key1_long_press() {
+    infrared_capture_flag = !infrared_capture_flag;
+    if (infrared_capture_flag) {
+        Infrared_StartCapture();
+    } else {
+        Infrared_EndCapture(0);
+        Infrared_StorePreset(preferences);
+    }
+    log_i("key1 long press");
+}
+
+void key2_press() {
+    log_i("key2 press");
+    reset_to_default_state();
+    log_i("All reset!");
+}
+
+void key2_long_press() {
+    log_i("key2 long press");
+    infrared_capture_flag = !infrared_capture_flag;
+    if (infrared_capture_flag) {
+        Infrared_StartCapture();
+    } else {
+        Infrared_EndCapture(1);
+        Infrared_StorePreset(preferences);
+    }
+}
+
 void loop() {
     TASK(10)
         key_scan();
@@ -51,23 +91,30 @@ void loop() {
         if (key_is(K1, KEY_PRESS)) {
             while (key_is(K1, KEY_PRESS))
                 key_scan();
-            Relay_Flip();
-            log_i("Manualy Relay Flip");
+            if (key_is(K1, KEY_LONG_PRESS)) {
+                key1_long_press();
+                while (key_is(K1, KEY_LONG_PRESS))
+                    key_scan();
+            } else {
+                key1_press();
+            }
         }
 
         if (key_is(K2, KEY_PRESS)) {
             while (key_is(K2, KEY_PRESS))
                 key_scan();
             if (key_is(K2, KEY_LONG_PRESS)) {
-                reset_to_default_state();
-                log_i("All reset!");
+                key2_long_press();
                 while (key_is(K2, KEY_LONG_PRESS))
                     key_scan();
             } else {
-                LED_Flip();
+                key2_press();
             }
         }
     }
+
+    if (infrared_capture_flag) // 避免Wi-Fi干扰红外接收
+        return;
 
     TASK(300) {
         Sensors::updateAll();

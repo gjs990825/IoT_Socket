@@ -2,6 +2,7 @@
 #include "bsp.h"
 #include "sensors.h"
 #include <list>
+#include "infrared.h"
 
 ////////////////////// actions
 
@@ -13,18 +14,22 @@ typedef struct {
 } action_t;
 
 const action_t actions[] = {
-    {"relay",       [](bool sta){ Relay_Set(sta); 	}},
-    {"relay_on",    [](bool sta){ Relay_Set(true);	}},
-    {"relay_off",   [](bool sta){ Relay_Set(false);	}},
-    {"relay_flip",  [](bool sta){ Relay_Flip();		}},
-    {"led",         [](bool sta){ LED_Set(sta);		}},
-    {"led_on",      [](bool sta){ LED_Set(true);	}},
-    {"led_off",     [](bool sta){ LED_Set(false);	}},
-    {"led_flip",    [](bool sta){ LED_Flip();		}},
-    {"beep",        [](bool sta){ Beep_Set(sta);	}},
-    {"beep_on",     [](bool sta){ Beep_Set(true);	}},
-    {"beep_off",    [](bool sta){ Beep_Set(false);	}},
-    {"beep_flip",   [](bool sta){ Beep_Flip();		}},
+    {"relay",       [](bool sta){ Relay_Set(sta); 	        }},
+    {"relay_on",    [](bool sta){ Relay_Set(true);	        }},
+    {"relay_off",   [](bool sta){ Relay_Set(false);	        }},
+    {"relay_flip",  [](bool sta){ Relay_Flip();		        }},
+    {"led",         [](bool sta){ LED_Set(sta);		        }},
+    {"led_on",      [](bool sta){ LED_Set(true);	        }},
+    {"led_off",     [](bool sta){ LED_Set(false);	        }},
+    {"led_flip",    [](bool sta){ LED_Flip();		        }},
+    {"beep",        [](bool sta){ Beep_Set(sta);	        }},
+    {"beep_on",     [](bool sta){ Beep_Set(true);	        }},
+    {"beep_off",    [](bool sta){ Beep_Set(false);	        }},
+    {"beep_flip",   [](bool sta){ Beep_Flip();		        }},
+    {"ir_preset_0", [](bool sta){ Infrared_SendPreset(0);   }},
+    {"ir_preset_1", [](bool sta){ Infrared_SendPreset(1);   }},
+    {"ir_preset_2", [](bool sta){ Infrared_SendPreset(2);   }},
+    {"ir_preset_3", [](bool sta){ Infrared_SendPreset(3);   }},
 };
 const int actions_count = sizeof(actions) / sizeof(actions[0]);
 
@@ -159,7 +164,7 @@ void task_add(const char *s) {
     char type_s[15], condition_s[15], action_s[15];
     int match = sscanf(s, "%s %s %s %f %f", action_s, type_s, condition_s, &v1, &v2);
     if (match > 0) {
-        log_d("Action:%s, Type:%s, Condition:%s, V1:%f, V2:%f\n",
+        log_i("Action:%s, Type:%s, Condition:%s, V1:%f, V2:%f\n",
                       action_s, type_s, condition_s, v1, v2);
         trigger_type_t type = trigger_type_get(type_s);
 
@@ -233,7 +238,7 @@ void alarm_add(const char *s) {
         return;
     }
     ss.remove(0, action_s.length() + isoneshot_s.length() + 2);
-    log_d("Add alarm With s:\"%s\", action:%s, isoneshot:%d\n", ss.c_str(), action, oneshot);
+    log_i("Add alarm With s:\"%s\", action:%s, isoneshot:%d\n", ss.c_str(), action, oneshot);
     alarm_add(ss.c_str(), (void(*)(void))func, oneshot);
     log_i("Alarm add Succeeded!");
 }
