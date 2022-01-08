@@ -278,19 +278,19 @@ void reset_to_default_state() {
 
 const struct {
     bool (*sta)();
-    const char* code;
-} state_codes[] = {
-    { [](){ return task_get_count() != 0; },    "T"},
-    { [](){ return alarm_get_count() != 0; },   "A"},
-    { [](){ return true; },                     "|"},
-    { Relay_Get,                                "R"},
-    { Beep_Get,                                 "B"},
-    { [](){ return LED_Get() != 0; },           "L"},
+    const char mark;
+} state_marks[] = {
+    { [](){ return task_get_count() != 0; },    'T'},
+    { [](){ return alarm_get_count() != 0; },   'A'},
+    { [](){ return true; },                     '|'},
+    { Relay_Get,                                'R'},
+    { Beep_Get,                                 'B'},
+    { [](){ return LED_Get() != 0; },           'L'},
 };
 
 String get_state_string() {
     String s;
-    for (auto &&state_code : state_codes)
-        s += state_code.sta() ? state_code.code : "-";
+    for (auto &&state_code : state_marks)
+        s += state_code.sta() ? state_code.mark : '-';
     return s;
 }

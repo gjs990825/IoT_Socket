@@ -7,16 +7,16 @@
 #include <ESP32Ping.h>
 
 const struct {
-    int failedTimes;
-    int retryAfter;
+    uint8_t failedTimes;
+    uint8_t retryAfter;
 } fail_retries[] = {
-    {1, 1000},
-    {3, 5000},
-    {6, 10000},
-    {15, 30000},
-    {30, 60000},
+    {1, 1},
+    {3, 5},
+    {6, 10},
+    {15, 30},
+    {30, 60},
 };
-const int fail_retry_count = sizeof(fail_retries) / sizeof(fail_retries[0]);
+constexpr uint8_t fail_retry_count = sizeof(fail_retries) / sizeof(fail_retries[0]);
 
 int access_fail_count = 0;
 
@@ -24,7 +24,7 @@ int get_access_fail_count() { return access_fail_count; }
 void update_access_fail_count(bool sta) { access_fail_count = sta ? 0 : access_fail_count + 1; }
 bool get_server_state() { return access_fail_count == 0; }
 
-int get_retry_after() {
+uint8_t get_retry_after() {
     for (auto &&fail_retry : fail_retries)
         if (access_fail_count <= fail_retry.failedTimes)
             return fail_retry.retryAfter;

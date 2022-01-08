@@ -1,11 +1,13 @@
 #if !defined(_INTERATIONS_H_)
 #define _INTERATIONS_H_
 
+#include <stdint.h>
+
 void Upload_Data();
 void Get_Command();
 
 int get_access_fail_count();
-int get_retry_after();
+uint8_t get_retry_after();
 bool get_server_state();
 bool test_server_connection();
 

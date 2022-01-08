@@ -126,7 +126,7 @@ void loop() {
         
     TASK(1000) {
         static unsigned long _t = 0;
-        if (get_retry_after() + _t < millis()) {
+        if (get_retry_after() * 1000 + _t < millis()) {
             _t = millis();
 
             if (test_server_connection()) {  

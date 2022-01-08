@@ -7,7 +7,7 @@
 #include <BluetoothSerial.h>
 #include "infrared.h"
 
-static const int LED1_CHANNEL = 0;
+static const uint8_t LED1_CHANNEL = 0;
 
 uint8_t led_status = 0;
 void LED_Set(uint8_t val) {

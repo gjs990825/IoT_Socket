@@ -8,20 +8,20 @@
 #define TASK(T) for(static unsigned long var = 0; var + (T) < millis(); var = millis())
 
 // Pins
-static const int K1 = 25, K2 = 27;
-static const int LED1 = LED_BUILTIN;
-static const int RELAY = 33;
-static const int BEEP = 23;
-static const int ADC_PIN = 32;
-static const int BMP280_SCL = 22, BMP280_SDA = 21;
-static const int OLED_CLK = 14,
-                 OLED_MOSI = 13,
-                 OLED_RESET = 5,
-                 OLED_DC = 4,
-                 OLED_CS = 15;
+static const uint8_t K1 = 25, K2 = 27;
+static const uint8_t LED1 = LED_BUILTIN;
+static const uint8_t RELAY = 33;
+static const uint8_t BEEP = 23;
+static const uint8_t ADC_PIN = 32;
+static const uint8_t BMP280_SCL = 22, BMP280_SDA = 21;
+static const uint8_t OLED_CLK = 14,
+                     OLED_MOSI = 13,
+                     OLED_RESET = 5,
+                     OLED_DC = 4,
+                     OLED_CS = 15;
 
-static const int IR_OUT_PIN = 26;
-static const int IR_IN_PIN = 19;
+static const uint8_t IR_OUT_PIN = 26;
+static const uint8_t IR_IN_PIN = 19;
 
 
 // Peripherals
@@ -40,7 +40,6 @@ typedef enum {
     KEY_PRESS,
     KEY_LONG_PRESS,
 } key_status_t;
-
 
 // Initialization and operation functions
 void LED_Set(uint8_t val);
