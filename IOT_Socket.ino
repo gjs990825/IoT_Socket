@@ -8,6 +8,75 @@
 #include <Preferences.h>
 extern Preferences preferences;
 
+#include "lwshell.h"
+
+void serial_shell_check() {
+    const unsigned int MAX_MESSAGE_LENGTH = 64;
+    while (Serial.available() > 0) {
+        static char message[MAX_MESSAGE_LENGTH];
+        static unsigned int message_pos = 0;
+
+        char inByte = Serial.read();
+        if (inByte != '\n' && (message_pos < MAX_MESSAGE_LENGTH - 1)) {
+            message[message_pos++] = inByte;
+        } else {
+            message[message_pos] = '\0';
+            lwshell_input(message, strlen(message));
+            message_pos = 0;
+        }
+    }
+}
+
+int32_t ir_send_cmd(int32_t argc, char** argv) {
+    if (argc < 2)
+        return -1;
+    Infrared_SendPreset(atoi(argv[1]));
+    return 0;
+}
+
+int32_t ir_capture_cmd(int32_t argc, char** argv) {
+    if (argc < 2)
+        return -1;
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("start")) {
+        Infrared_StartCapture();
+    } else if (flag.equalsIgnoreCase("end")) {
+        if (Infrared_EndCapture(atoi(argv[2])))
+            Infrared_StorePreset(preferences);
+    }
+    return 0;
+}
+
+int32_t led_set_cmd(int32_t argc, char** argv) {
+    if (argc < 2)
+        return -1;
+    LED_Set((uint8_t)atoi(argv[1]));
+    return 0;
+}
+
+int32_t relay_set_cmd(int32_t argc, char** argv) {
+    if (argc < 2)
+        return -1;
+    Relay_Set(atoi(argv[1]));
+    return 0;
+}
+
+struct {
+    const char* cmd_name;
+    lwshell_cmd_fn cmd_fn;
+    const char* desc;
+} lwshell_cmd_list[] = {
+    {"ir_send",     ir_send_cmd,    "Infrared send Nth preset"  },
+    {"ir_capture",  ir_capture_cmd, "Infrared Capture"          },
+    {"led_set",     led_set_cmd,    "Led brightness control"    },
+    {"relay_set",   relay_set_cmd,  "Relay control"             },
+};
+
+void lwshell_register_cmd() {
+    for (auto &&cmd : lwshell_cmd_list)
+        lwshell_register_cmd(cmd.cmd_name, cmd.cmd_fn, cmd.desc);
+}
+
 void setup() {
     // Basic peripheral
     Serial.begin(115200);
@@ -26,9 +95,18 @@ void setup() {
     WIFI_Setup();
     NTP_Setup();
 
+    // lwshell library init
+    lwshell_init();
+    lwshell_set_output_fn(
+        [](const char* str, lwshell_t* lw) {
+            Serial.printf("%s", str);
+            if (*str == '\r')
+                Serial.printf("\n");
+        }
+    );
+    lwshell_register_cmd();
+
     log_i("SYS OK");
-    task_print_help();
-    delay(500);
 }
 
 void OLED_UpdateInfo() {
@@ -45,21 +123,17 @@ void OLED_UpdateInfo() {
     OLED.display();
 }
 
-bool infrared_capture_flag = false;
-
 void key1_press() {
     log_i("key1 press");
-    
     Relay_Flip();
 }
 
 void key1_long_press() {
-    infrared_capture_flag = !infrared_capture_flag;
-    if (infrared_capture_flag) {
+    if (Infrared_IsCapturing()) {
         Infrared_StartCapture();
     } else {
-        Infrared_EndCapture(0);
-        Infrared_StorePreset(preferences);
+        if (Infrared_EndCapture(0))
+            Infrared_StorePreset(preferences);
     }
     log_i("key1 long press");
 }
@@ -72,18 +146,22 @@ void key2_press() {
 
 void key2_long_press() {
     log_i("key2 long press");
-    infrared_capture_flag = !infrared_capture_flag;
-    if (infrared_capture_flag) {
+    if (Infrared_IsCapturing()) {
         Infrared_StartCapture();
     } else {
-        Infrared_EndCapture(1);
-        Infrared_StorePreset(preferences);
+        if (Infrared_EndCapture(1))
+            Infrared_StorePreset(preferences);
     }
 }
 
 void loop() {
-    TASK(10)
+    TASK(100) {
+        serial_shell_check();
+    }
+
+    TASK(10) {
         key_scan();
+    }
 
     TASK(50) {
         int key = key_get_key();
@@ -113,7 +191,7 @@ void loop() {
         }
     }
 
-    if (infrared_capture_flag) // 避免Wi-Fi干扰红外接收
+    if (Infrared_IsCapturing())
         return;
 
     TASK(300) {
@@ -139,7 +217,7 @@ void loop() {
         }
     }
 
-    TASK(120 * 1000) {
+    TASK(1000 * 60 * 30) {
         updateTimePreference();
     }
 
