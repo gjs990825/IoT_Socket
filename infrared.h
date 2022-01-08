@@ -9,9 +9,10 @@ typedef struct {
     uint8_t len;
 } infrared_code_t;
 
+bool Infrared_IsCapturing();
 void Infrared_StartCapture();
-void Infrared_EndCapture(int n);
-void Infrared_SendPreset(int n);
+bool Infrared_EndCapture(int n);
+bool Infrared_SendPreset(int n);
 void Infrared_RestorePreset(Preferences &pref);
 void Infrared_StorePreset(Preferences &pref);
 
