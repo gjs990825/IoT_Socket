@@ -22,8 +22,9 @@ void task_check(void);
 void task_clear(void);
 int task_get_count();
 
-void alarm_add(const char *s, void(*handler)(void), bool is_oneshot);
+void alarm_add(const char *cron_string, void (*handler)(void), bool is_oneshot);
 void alarm_add(const char *s);
+void alarm_remove(void (*handler)(void));
 void alarm_clear();
 int alarm_get_count();
 

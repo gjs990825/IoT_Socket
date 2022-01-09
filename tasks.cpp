@@ -243,13 +243,25 @@ void alarm_add(const char *s) {
     log_i("Alarm add Succeeded!");
 }
 
-void alarm_add(const char *s, void(*handler)(void), bool is_oneshot) {
-    Cron.create((char *)s, handler, is_oneshot);
+void alarm_add(const char *cron_string, void (*handler)(void), bool is_oneshot) {
+    int id = Cron.create((char *)cron_string, handler, is_oneshot);
+    log_i("new alarm, id:%d", id);
+}
+
+void alarm_remove(void (*handler)(void)) {
+    CronEventClass *alarms = Cron.getAlarms();
+    for (int i = 0; i < dtNBR_ALARMS; i++) {
+        if (alarms[i].onTickHandler == handler) {
+            alarms[i].isEnabled = false;
+            log_i("alarm removed, id:%d", i);
+        }
+    }
 }
 
 void alarm_clear() {
     for (int i = 0; i < dtNBR_ALARMS; i++)
         Cron.free(i);
+    log_i("alarms cleared");
 }
 
 int alarm_get_count() {

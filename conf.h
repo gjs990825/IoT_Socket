@@ -28,6 +28,6 @@ static const int gmtOffset = 3600 * 8;
 static const int daylightOffset = 0;
 
 // Fri Jan 01 2021 00:00:00 GMT+0800 (China Standard Time)
-static time_t timeStamp = 1609430400;
+static long timeStamp = 1609430400;
 
 #endif // _CONF_H_
