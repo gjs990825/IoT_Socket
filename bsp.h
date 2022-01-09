@@ -1,9 +1,10 @@
 #if !defined(_BSP_H_)
 #define _BSP_H_
 
+#include "conf.h"
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_BMP280.h>
-#include "conf.h"
+#include <Preferences.h>
 
 #define TASK(T) for(static unsigned long var = 0; var + (T) < millis(); var = millis())
 
@@ -70,9 +71,12 @@ uint16_t Photoresistor_GetRaw();
 float Photoresistor_GetVoltage();
 
 void Preferences_Init();
+Preferences& Preferences_Get();
+void Preferences_RestoreWIFISetting();
 bool Preferences_UpdateWIFISetting(String setting);
 bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password);
-void updateTimePreference();
+void Preferences_RestoreTimeStamp();
+void Preference_UpdateTimeStamp();
 void BlueTooth_Setup();
 bool WIFI_Setup();
 void NTP_Setup();

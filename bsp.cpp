@@ -7,7 +7,7 @@
 #include <BluetoothSerial.h>
 #include "infrared.h"
 
-static const uint8_t LED1_CHANNEL = 0;
+const uint8_t LED1_CHANNEL = 0;
 
 uint8_t led_status = 0;
 void LED_Set(uint8_t val) {
@@ -59,7 +59,7 @@ bool key_is(int id, key_status_t sta) { return key_get_key() == id && key_get_st
 bool key_is_not(int id, key_status_t sta) { return !key_is(id, sta); }
 
 void key_scan() {
-	static long key_t = 0;
+	static long key_t;
 	
 	s_key = key_get();
 	if (s_key == -1){
@@ -133,14 +133,15 @@ Adafruit_BMP280 BMP280;
 
 void BMP280_Setup() {
     Wire.begin(BMP280_SDA, BMP280_SCL);
-    if (!BMP280.begin(BMP280_ADDRESS_ALT))
+    if (!BMP280.begin(BMP280_ADDRESS_ALT)) {
         log_e("BMP280 ERR!");
-    else
+    } else {
         BMP280.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
                            Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
                            Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
                            Adafruit_BMP280::FILTER_X16,      /* Filtering. */
                            Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+    }
 }
 
 BluetoothSerial SerialBT;
@@ -151,15 +152,23 @@ void Preferences_Init() {
 
 #if defined(PREFERENCES_DEBUG)
     preferences.clear(); // clear config
-    log_i("Preferences cleared");
+    log_w("Preferences cleared");
 #endif // PREFERENCES_DEBUG
 
+    Preferences_RestoreWIFISetting();
+    Preferences_RestoreTimeStamp();
+    Infrared_RestorePreset(preferences);
+}
+
+Preferences& Preferences_Get() {
+    return preferences;
+}
+
+void Preferences_RestoreWIFISetting() {
     ssid = preferences.getString("pref_ssid");
     password = preferences.getString("pref_pass");
-    timeStamp = preferences.getLong("pref_time_stamp");
-    log_i("Preferences restored: ssid:\"%s\" password:\"%s\", time:%d", 
-        ssid.c_str(), password.c_str(), timeStamp);
-    Infrared_RestorePreset(preferences);
+    log_i("Wi-Fi setting restored: ssid:\"%s\" password:\"%s\"", 
+        ssid.c_str(), password.c_str());
 }
 
 bool Preferences_UpdateWIFISetting(String setting) {
@@ -183,6 +192,11 @@ bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password) {
         log_e("Wi-Fi setting invalid");
         return false;
     }
+}
+
+void Preferences_RestoreTimeStamp() {
+    timeStamp = preferences.getLong("pref_time_stamp");
+    log_i("time stamp restored:%ld", timeStamp);
 }
 
 void Preferences_UpdateTimeStamp(long t) {
@@ -238,7 +252,7 @@ int setUnixtime(time_t unixtime) {
     return settimeofday((const timeval*)&epoch, 0);
 }
 
-void updateTimePreference() {
+void Preference_UpdateTimeStamp() {
     timeval epoch;
     gettimeofday(&epoch, 0);
     if (epoch.tv_sec > 1577836800) { // 2020.01.01
