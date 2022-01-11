@@ -80,6 +80,7 @@ void key2_long_press() {
 void loop() {
     TASK(100) {
         Command_CheckSerial();
+        CommandQueue_Handle();
     }
 
     TASK(10) {

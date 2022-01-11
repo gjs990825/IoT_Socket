@@ -70,6 +70,24 @@ int32_t preference_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+// 0    1   2
+// run  cmd arg
+int32_t run_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    Serial.printf("argc:%d\n", argc);
+    Serial.printf("argv[0]:%s\n", argv[0]);
+    String cmd = String();
+    for (int i = 1; i < argc; i++) {
+        cmd += argv[i];
+        cmd += ' ';
+    }
+    cmd.trim();
+    Serial.printf("cmd:\"%s\"\n", cmd.c_str());
+    CommandQueue_Add(cmd);
+    return 0;
+}
+
+
 // 0    1
 // led  sta
 int32_t led_cmd(int32_t argc, char** argv) {
@@ -207,7 +225,9 @@ const struct {
     lwshell_cmd_fn cmd_fn;
     const char* desc;
 } lwshell_cmd_list[] = {
+    {"run",         run_cmd,        "run some command"          },
     {"infrared",    infrared_cmd,   "Infrared management"       },
+    {"preference",  preference_cmd, "Preference management"     },
     {"led",         led_cmd,        "Led brightness control"    },
     {"relay",       relay_cmd,      "Relay control"             },
     {"beep",        beep_cmd,       "Beeper control"            },
@@ -234,7 +254,7 @@ void Command_Init() {
 }
 
 void Command_CheckSerial() {
-    const unsigned int MAX_MESSAGE_LENGTH = 64;
+    const unsigned int MAX_MESSAGE_LENGTH = 80;
     while (Serial.available() > 0) {
         static char message[MAX_MESSAGE_LENGTH];
         static unsigned int message_pos = 0;
@@ -253,4 +273,27 @@ void Command_CheckSerial() {
 bool Command_Run(String cmd) {
     cmd += '\n';
     return lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK;
+}
+
+#include <queue>
+std::queue<String> cmd_queue;
+
+constexpr uint8_t MAX_CMD_QUEUE = 10;
+
+void CommandQueue_Add(String cmd) {
+    if (cmd_queue.size() >= MAX_CMD_QUEUE) {
+        log_e("command queue full");
+        return;
+    }
+    cmd_queue.push(cmd);
+}
+
+void CommandQueue_Handle() {
+    if (cmd_queue.empty()) 
+        return;
+    while (!cmd_queue.empty()) {
+        String cmd = cmd_queue.front();
+        cmd_queue.pop();
+        Command_Run(cmd);
+    }
 }
