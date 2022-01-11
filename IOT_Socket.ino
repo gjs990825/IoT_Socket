@@ -50,7 +50,7 @@ void key1_press() {
 }
 
 void key1_long_press() {
-    if (Infrared_IsCapturing()) {
+    if (!Infrared_IsCapturing()) {
         Infrared_StartCapture();
     } else {
         if (Infrared_EndCapture(0)) {
@@ -68,7 +68,7 @@ void key2_press() {
 
 void key2_long_press() {
     log_i("key2 long press");
-    if (Infrared_IsCapturing()) {
+    if (!Infrared_IsCapturing()) {
         Infrared_StartCapture();
     } else {
         if (Infrared_EndCapture(1)) {
