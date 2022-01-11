@@ -2,6 +2,8 @@
 #include "bsp.h"
 #include <IRremote.h>
 
+const String INFRARED_PRESET_PREFIX = "ir_preset_";
+
 infrared_code_t *ir_preset[] = {NULL, NULL, NULL, NULL};
 constexpr int IR_PRESET_NUM = sizeof(ir_preset) / sizeof(ir_preset[0]);
 
@@ -48,7 +50,7 @@ bool Infrared_SendPreset(int n) {
     ASSERT_PRESET_NUM(n);
 
     if (ir_preset[n] == NULL) {
-        log_e("%d infrared preset does not exist", n);
+        log_e("preset %d does not exist", n);
         return false;
     }
     IrSender.begin(IR_OUT_PIN, true);
@@ -90,9 +92,8 @@ bool Infrared_EndCapture(int n) {
 
 void Infrared_RestorePreset(Preferences &pref) {
     infrared_code_t ir_code;
-    String prefix = "ir_preset_";
     for (int i = 0; i < IR_PRESET_NUM; i++) {
-        int len = pref.getBytes((prefix + i).c_str(),
+        int len = pref.getBytes((INFRARED_PRESET_PREFIX + i).c_str(),
                                 &ir_code,
                                 sizeof(infrared_code_t));
         if (len == sizeof(infrared_code_t)) {
@@ -106,13 +107,23 @@ void Infrared_RestorePreset(Preferences &pref) {
 
 void Infrared_StorePreset(Preferences &pref) {
     infrared_code_t ir_code;
-    String prefix = "ir_preset_";
     for (int i = 0; i < IR_PRESET_NUM; i++) {
         if (Infrared_GetPreset(i, ir_code)) {
-            pref.putBytes((prefix + i).c_str(),
+            pref.putBytes((INFRARED_PRESET_PREFIX + i).c_str(),
                           &ir_code,
                           sizeof(infrared_code_t));
             log_i("preset %d stored", i);
         }
     }
+}
+
+bool Infrared_RemovePreset(int n, Preferences &pref) {
+    ASSERT_PRESET_NUM(n);
+    if (ir_preset[n] != NULL) {
+        free(ir_preset[n]);
+        ir_preset[n] = NULL;
+    }
+    bool ret = pref.remove((INFRARED_PRESET_PREFIX + n).c_str());
+    log_i("preset %d removed:%d", n, ret);
+    return ret;
 }

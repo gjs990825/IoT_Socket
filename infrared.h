@@ -15,5 +15,6 @@ bool Infrared_EndCapture(int n);
 bool Infrared_SendPreset(int n);
 void Infrared_RestorePreset(Preferences &pref);
 void Infrared_StorePreset(Preferences &pref);
+bool Infrared_RemovePreset(int n, Preferences &pref);
 
 #endif // _INFRARED_H_

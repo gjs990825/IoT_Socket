@@ -15,27 +15,55 @@
 
 #define FLAG_NOT_MATCH() do { log_e("flag not match"); } while(0)
 
-// 0        1
-// ir_send  id
-int32_t ir_send_cmd(int32_t argc, char** argv) {
+// 0        1       2           3
+// infrared send    preset_id
+// infrared remove  preset_id
+// infrared capture start
+// infrared cpature end         id
+int32_t infrared_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Infrared_SendPreset(atoi(argv[1]));
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("send")) {
+        CHECK_ARGC(2);
+        Infrared_SendPreset(atoi(argv[2]));
+    } else if (flag.equalsIgnoreCase("remove")) {
+        CHECK_ARGC(2);
+        Infrared_RemovePreset(atoi(argv[2]), Preferences_Get());
+    } else if (flag.equalsIgnoreCase("capture")) {
+        CHECK_ARGC(2);
+        flag = argv[2];
+        if (flag.equalsIgnoreCase("start")) {
+            Infrared_StartCapture();
+        } else if (flag.equalsIgnoreCase("end")) {
+            CHECK_ARGC(3);
+            if (Infrared_EndCapture(atoi(argv[3])))
+                Infrared_StorePreset(Preferences_Get());
+        } else {
+            FLAG_NOT_MATCH();
+        }
+    } else {
+        FLAG_NOT_MATCH();
+    }
     return 0;
 }
 
-// 0            1       2
-// ir_capture   start
-// ir_cpature   end     id
-int32_t ir_capture_cmd(int32_t argc, char** argv) {
+// 0            1       2   3
+// preference   add     key content
+// preference   remove  key
+// preference   check   key
+int32_t preference_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
-    if (flag.equalsIgnoreCase("start")) {
-        CHECK_ARGC(1);
-        Infrared_StartCapture();
-    } else if (flag.equalsIgnoreCase("end")) {
+    if (flag.equalsIgnoreCase("add")) {
+        CHECK_ARGC(3);
+        Preferences_Get().putString(argv[2], argv[3]);
+    } else if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
-        if (Infrared_EndCapture(atoi(argv[2])))
-            Infrared_StorePreset(Preferences_Get());
+        Preferences_Get().remove(argv[2]);
+    } else if (flag.equalsIgnoreCase("check")) {
+        CHECK_ARGC(2);
+        String res = Preferences_Get().getString(argv[2]);
+        log_i("key:%s, content:%s", argv[2], res.c_str());
     } else {
         FLAG_NOT_MATCH();
     }
@@ -179,8 +207,7 @@ const struct {
     lwshell_cmd_fn cmd_fn;
     const char* desc;
 } lwshell_cmd_list[] = {
-    {"ir_send",     ir_send_cmd,    "Infrared send Nth preset"  },
-    {"ir_capture",  ir_capture_cmd, "Infrared Capture"          },
+    {"infrared",    infrared_cmd,   "Infrared management"       },
     {"led",         led_cmd,        "Led brightness control"    },
     {"relay",       relay_cmd,      "Relay control"             },
     {"beep",        beep_cmd,       "Beeper control"            },
