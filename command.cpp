@@ -220,12 +220,62 @@ int32_t task_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+
+typedef float (*condition_func_t)();
+
+const struct {
+    const char *name;
+    condition_func_t func;
+} conditions[] = {
+    {"temperature",	Sensors::getTemperature         },
+    {"pressure",	Sensors::getPressure	        },
+    {"light",		Sensors::getLight		        },
+    {"true",		[]() -> float { return 0.0; }   },
+    {"false",		[]() -> float { return 1.0; }   },
+};
+
+condition_func_t _condition_get(const char *s) {
+    String str = String(s);
+    for (auto &&condition : conditions)
+        if (str.equalsIgnoreCase(condition.name))
+            return condition.func;
+    return NULL;
+}
+
+float condition_execute(condition_func_t func) { return func ? func() : 0.0; }
+
+#define PARSE_BOOL(B) ((B) ? '1' : '0')
+
+// 0        1           2       3
+// higher   condition   action  param
+// higher   light       relay   1.5
+int32_t higher_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(3);
+    condition_func_t condition = _condition_get(argv[1]);
+    String action = argv[2];
+    float set = atoff(argv[3]);
+    
+    if (condition == NULL) {
+        log_e("invalid condition:%s", argv[1]);
+        return -1;
+    }
+
+    float condition_result = condition_execute(condition);
+    bool result = condition_result > set;
+
+    String cmd = action + ' ' + PARSE_BOOL(result);
+    CommandQueue_Add(cmd);
+    
+    return 0;
+}
+
 const struct {
     const char* cmd_name;
     lwshell_cmd_fn cmd_fn;
     const char* desc;
 } lwshell_cmd_list[] = {
     {"run",         run_cmd,        "run some command"          },
+    {"higher",      higher_cmd,     "higher handler"            },
     {"infrared",    infrared_cmd,   "Infrared management"       },
     {"preference",  preference_cmd, "Preference management"     },
     {"led",         led_cmd,        "Led brightness control"    },

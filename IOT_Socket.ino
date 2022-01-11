@@ -139,7 +139,7 @@ void loop() {
             if (test_server_connection()) {  
                 interactions();      
             } else {
-                log_e("Service down:%d, retry after %d\n", 
+                log_e("Service down:%d, retry after %ds\n", 
                     get_access_fail_count(),
                     get_retry_after());
             }
