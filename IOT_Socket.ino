@@ -15,6 +15,7 @@ void setup() {
     Relay_Setup();
     OLED_Setup();
     BMP280_Setup();
+    MotorControl_Setup();
 
     // Restore settings
     Preferences_Init();
@@ -78,6 +79,21 @@ void key2_long_press() {
 }
 
 void loop() {
+    // test
+    TASK(10) {
+        static int speed;
+        static int adding_value = 1;
+
+        if (speed >= 100) {
+            adding_value = -1;
+        }
+        else if (speed <= -100) {
+            adding_value = 1;
+        }
+        speed += adding_value;
+        MotorControl_SetSpeed(speed);
+    }
+
     TASK(100) {
         Command_CheckSerial();
         CommandQueue_Handle();

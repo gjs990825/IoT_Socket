@@ -117,6 +117,23 @@ void Beep_Flip() {
     Beep_Set(!Beep_Get());
 }
 
+void MotorControl_Setup() {
+    pinMode(PWM_OUT_PIN, OUTPUT);
+    pinMode(M_CTL_A_PIN, OUTPUT);
+    pinMode(M_CTL_B_PIN, OUTPUT);
+    ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
+    ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
+}
+
+void MotorControl_SetSpeed(int val) {
+    val = constrain(val, -100, 100);
+    bool is_positive = val >= 0;
+    digitalWrite(M_CTL_A_PIN, is_positive);
+    digitalWrite(M_CTL_B_PIN, !is_positive);
+    uint32_t duty = (uint32_t)map(abs(val), 0, 100, 0, 0x3FF);
+    ledcWrite(MOTOR_PWM_CHANNEL, duty);
+}
+
 Adafruit_SSD1306 OLED(128, 64, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 void OLED_Setup() {

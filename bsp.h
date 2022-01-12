@@ -13,7 +13,7 @@ static const uint8_t K1 = 25, K2 = 27;
 static const uint8_t LED1 = LED_BUILTIN;
 static const uint8_t RELAY = 33;
 static const uint8_t BEEP = 23;
-static const uint8_t ADC_PIN = 32;
+static const uint8_t ADC_PIN = 34;
 static const uint8_t BMP280_SCL = 22, BMP280_SDA = 21;
 static const uint8_t OLED_CLK = 14,
                      OLED_MOSI = 13,
@@ -24,6 +24,11 @@ static const uint8_t OLED_CLK = 14,
 static const uint8_t IR_OUT_PIN = 26;
 static const uint8_t IR_IN_PIN = 19;
 
+static const uint8_t PWM_OUT_PIN = 32;
+static const uint8_t M_CTL_A_PIN = 12;
+static const uint8_t M_CTL_B_PIN = 18;
+
+static const uint8_t MOTOR_PWM_CHANNEL = 1;
 
 // Peripherals
 extern Adafruit_SSD1306 OLED;
@@ -64,6 +69,9 @@ bool Beep_Get();
 void Beep_Set(bool sta);
 void Beep_Setup();
 void Beep_Flip();
+
+void MotorControl_Setup();
+void MotorControl_SetSpeed(int val);
 
 void OLED_Setup();
 void BMP280_Setup();
