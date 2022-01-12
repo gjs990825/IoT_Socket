@@ -19,7 +19,7 @@
 // infrared send    preset_id
 // infrared remove  preset_id
 // infrared capture start
-// infrared cpature end         id
+// infrared cpature end         preset_id
 int32_t infrared_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
@@ -87,12 +87,19 @@ int32_t run_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-
 // 0    1
-// led  sta
+// led  brightness
 int32_t led_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     LED_Set((uint8_t)atoi(argv[1]));
+    return 0;
+}
+
+// 0        1
+// motor    speed
+int32_t motor_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    MotorControl_SetSpeed(atoi(argv[1]));
     return 0;
 }
 
@@ -245,8 +252,7 @@ condition_func_t _condition_get(const char *s) {
 
 float condition_execute(condition_func_t func) { return func ? func() : 0.0; }
 
-float map_float(float x, float in_min, float in_max, float out_min, float out_max)
-{
+float map_float(float x, float in_min, float in_max, float out_min, float out_max) {
     float divisor = (in_max - in_min);
     if (divisor == 0) {
         return -1;
@@ -255,10 +261,10 @@ float map_float(float x, float in_min, float in_max, float out_min, float out_ma
 }
 
 // 0        1       2           3           4+
-// handler  action  type        condition   params+
-// handler  relay   higher      light       1.5
-// handler  led   linear      condition   in_l    in_h    out_l   out_h
-// handler  led   interval    condition   low     high   
+// handler  action  condition   type        params+
+// handler  relay   light       higher      1.5
+// handler  led     condition   linear      in_l    in_h    out_l   out_h
+// handler  led     condition   interval    low     high   
 int32_t handler_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(3);
     String action = argv[1];
@@ -328,6 +334,23 @@ int32_t handler_cmd(int32_t argc, char** argv) {
     
     return 0;
 }
+// 0        1       2           3
+// settings wifi    ssid        password
+// settings time    timestamp
+int32_t settings_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("wifi")) {
+        CHECK_ARGC(3);
+        Preferences_UpdateWIFISetting(argv[2], argv[3]);
+    } else if (flag.equalsIgnoreCase("time")) {
+        CHECK_ARGC(2);
+        Preferences_UpdateTimeStamp(atol(argv[2]));
+    } else {
+        FLAG_NOT_MATCH();
+    }
+    return 0;
+}
 
 const struct {
     const char* cmd_name;
@@ -336,9 +359,11 @@ const struct {
 } lwshell_cmd_list[] = {
     {"run",         run_cmd,        "run some command"          },
     {"handler",     handler_cmd,    "handler"                   },
+    {"settings",    settings_cmd,   "system settings"           },
     {"infrared",    infrared_cmd,   "Infrared management"       },
     {"preference",  preference_cmd, "Preference management"     },
     {"led",         led_cmd,        "Led brightness control"    },
+    {"motor",       motor_cmd,      "Motor speed control"       },
     {"relay",       relay_cmd,      "Relay control"             },
     {"beep",        beep_cmd,       "Beeper control"            },
     {"alarm",       alarm_cmd,      "Alarm setting"             },

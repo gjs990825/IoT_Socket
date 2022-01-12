@@ -217,7 +217,13 @@ void Preferences_RestoreTimeStamp() {
 }
 
 void Preferences_UpdateTimeStamp(long t) {
-    preferences.putLong("pref_time_stamp", t);
+    if (t > 1577836800) { // 2020.01.01
+        setUnixtime(t);
+        preferences.putLong("pref_time_stamp", t);
+        log_i("time preference updated");
+    } else {
+        log_e("time stamp error");
+    }
 }
 
 bool WIFI_Setup() {
@@ -269,13 +275,10 @@ int setUnixtime(time_t unixtime) {
     return settimeofday((const timeval*)&epoch, 0);
 }
 
-void Preference_UpdateTimeStamp() {
+void Preferences_UpdateTimeStamp() {
     timeval epoch;
     gettimeofday(&epoch, 0);
-    if (epoch.tv_sec > 1577836800) { // 2020.01.01
-        Preferences_UpdateTimeStamp(epoch.tv_sec);
-        log_i("Time preference updated.");
-    } 
+    Preferences_UpdateTimeStamp(epoch.tv_sec);
 }
 
 void NTP_Setup() {

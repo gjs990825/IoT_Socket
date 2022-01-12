@@ -79,20 +79,20 @@ void key2_long_press() {
 }
 
 void loop() {
-    // test
-    TASK(10) {
-        static int speed;
-        static int adding_value = 1;
+    // // test
+    // TASK(10) {
+    //     static int speed;
+    //     static int adding_value = 1;
 
-        if (speed >= 100) {
-            adding_value = -1;
-        }
-        else if (speed <= -100) {
-            adding_value = 1;
-        }
-        speed += adding_value;
-        MotorControl_SetSpeed(speed);
-    }
+    //     if (speed >= 100) {
+    //         adding_value = -1;
+    //     }
+    //     else if (speed <= -100) {
+    //         adding_value = 1;
+    //     }
+    //     speed += adding_value;
+    //     MotorControl_SetSpeed(speed);
+    // }
 
     TASK(100) {
         Command_CheckSerial();
@@ -163,7 +163,7 @@ void loop() {
     }
 
     TASK(1000 * 60 * 30) {
-        Preference_UpdateTimeStamp();
+        Preferences_UpdateTimeStamp();
     }
 
     Cron.delay(0);
