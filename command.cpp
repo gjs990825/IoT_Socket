@@ -191,8 +191,10 @@ void _task_remove(const char *cmd) {
 }
 
 void _task_check() {
+    // Command_OutputControl(false);
     for (auto &&task : _tasks)
         Command_Run(task);
+    // Command_OutputControl(true);
 }
 
 // 0    1       2
@@ -220,7 +222,6 @@ int32_t task_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-
 typedef float (*condition_func_t)();
 
 const struct {
@@ -244,16 +245,30 @@ condition_func_t _condition_get(const char *s) {
 
 float condition_execute(condition_func_t func) { return func ? func() : 0.0; }
 
-#define PARSE_BOOL(B) ((B) ? '1' : '0')
+float map_float(float x, float in_min, float in_max, float out_min, float out_max)
+{
+    float divisor = (in_max - in_min);
+    if (divisor == 0) {
+        return -1;
+    }
+    return (x - in_min) * (out_max - out_min) / divisor + out_min;
+}
 
-// 0        1           2       3
-// higher   condition   action  param
-// higher   light       relay   1.5
-int32_t higher_cmd(int32_t argc, char** argv) {
+// 0        1       2           3           4+
+// handler  action  type        condition   params+
+// handler  relay   higher      light       1.5
+// handler  led   linear      condition   in_l    in_h    out_l   out_h
+// handler  led   interval    condition   low     high   
+int32_t handler_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(3);
-    condition_func_t condition = _condition_get(argv[1]);
-    String action = argv[2];
-    float set = atoff(argv[3]);
+    String action = argv[1];
+    condition_func_t condition = _condition_get(argv[2]);
+    String type = argv[3];
+
+    if (!Command_IsValid(action)) {
+        log_e("invalid action:%s", action.c_str());
+        return -1;
+    }
     
     if (condition == NULL) {
         log_e("invalid condition:%s", argv[1]);
@@ -261,9 +276,54 @@ int32_t higher_cmd(int32_t argc, char** argv) {
     }
 
     float condition_result = condition_execute(condition);
-    bool result = condition_result > set;
+    int result = 0;
+    
+    if (type.equalsIgnoreCase("higher")) {
+        CHECK_ARGC(4);
+        result = condition_result > atoff(argv[4]);
+    } else if (type.equalsIgnoreCase("lower")) {
+        CHECK_ARGC(4);
+        result = condition_result < atoff(argv[4]);
+    } else if (type.equalsIgnoreCase("equal")) {
+        CHECK_ARGC(4);
+        result = condition_result == atoff(argv[4]);
+    } else if (type.equalsIgnoreCase("not_equal")) {
+        CHECK_ARGC(4);
+        result = condition_result != atoff(argv[4]);
+    } else if (type.equalsIgnoreCase("linear")) {
+        CHECK_ARGC(7);
+        result = (int)map_float(condition_result,
+                            atoff(argv[4]),
+                            atoff(argv[5]),
+                            atoff(argv[6]),
+                            atoff(argv[7]));
+    } else if (type.equalsIgnoreCase("interval")) {
+        CHECK_ARGC(5);
+        float l = atoff(argv[4]), h = atoff(argv[5]);
+        if (condition_result > h) {
+            result = 1;
+        } else if (condition_result < l) {
+            result = 0;
+        } else {
+            // nothing to do.
+            return 0;
+        }
+    } else if (type.equalsIgnoreCase("reverse_interval")) {
+        CHECK_ARGC(5);
+        float l = atoff(argv[4]), h = atoff(argv[5]);
+        if (condition_result > h) {
+            result = 0;
+        } else if (condition_result < l) {
+            result = 1;
+        } else {
+            // nothing to do.
+            return 0;
+        }
+    } else {
+        FLAG_NOT_MATCH();
+    }
 
-    String cmd = action + ' ' + PARSE_BOOL(result);
+    String cmd = action + ' ' + result;
     CommandQueue_Add(cmd);
     
     return 0;
@@ -275,7 +335,7 @@ const struct {
     const char* desc;
 } lwshell_cmd_list[] = {
     {"run",         run_cmd,        "run some command"          },
-    {"higher",      higher_cmd,     "higher handler"            },
+    {"handler",     handler_cmd,    "handler"                   },
     {"infrared",    infrared_cmd,   "Infrared management"       },
     {"preference",  preference_cmd, "Preference management"     },
     {"led",         led_cmd,        "Led brightness control"    },
@@ -285,21 +345,34 @@ const struct {
     {"task",        task_cmd,       "Task setting"              },
 };
 
+bool Command_IsValid(String command) {
+    for (auto &&cmd : lwshell_cmd_list) {
+        if (command.equalsIgnoreCase(cmd.cmd_name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void lwshell_register_cmd() {
     for (auto &&cmd : lwshell_cmd_list)
         lwshell_register_cmd(cmd.cmd_name, cmd.cmd_fn, cmd.desc);
 }
 
+void lwshell_output_function(const char* str, lwshell_t* lw) {
+    Serial.printf("%s", str);
+    if (*str == '\r')
+        Serial.printf("\n");
+}
+
+void Command_OutputControl(bool sta) {
+    lwshell_set_output_fn(sta ? lwshell_output_function : NULL);
+}
+
 void Command_Init() {
     // lwshell library init
     lwshell_init();
-    lwshell_set_output_fn(
-        [](const char* str, lwshell_t* lw) {
-            Serial.printf("%s", str);
-            if (*str == '\r')
-                Serial.printf("\n");
-        }
-    );
+    Command_OutputControl(true);
     lwshell_register_cmd();
 }
 
