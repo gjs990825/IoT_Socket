@@ -6,6 +6,9 @@
 #include <Preferences.h>
 #include <BluetoothSerial.h>
 #include "infrared.h"
+#include <MQTT.h>
+#include <ArduinoJson.h>
+#include "sensors.h"
 
 const uint8_t LED1_CHANNEL = 0;
 
@@ -125,13 +128,20 @@ void MotorControl_Setup() {
     ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
 }
 
+int motor_speed = 0;
+
 void MotorControl_SetSpeed(int val) {
+    motor_speed = val;
     val = constrain(val, -100, 100);
     bool is_positive = val >= 0;
     digitalWrite(M_CTL_A_PIN, is_positive);
     digitalWrite(M_CTL_B_PIN, !is_positive);
     uint32_t duty = (uint32_t)map(abs(val), 0, 100, 0, 0x3FF);
     ledcWrite(MOTOR_PWM_CHANNEL, duty);
+}
+
+int MotorControl_GetSpeed() {
+    return motor_speed;
 }
 
 Adafruit_SSD1306 OLED(128, 64, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
@@ -265,6 +275,77 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     }
 }
 
+
+WiFiClient net;
+MQTTClient client(512);
+
+bool (*command_handler)(String cmd) = NULL;
+
+void MQTT_SetCommandHandler(bool (*handler)(String)) {
+    command_handler = handler;
+}
+
+bool MQTT_Connect() {
+    if (WiFi.status() != WL_CONNECTED) {
+        log_e("no connection, mqtt connect failed");
+        return false;
+    }
+    if (!client.connect("IoT_Socket", "esp32", "password")) {
+        log_e("disconnected");
+        return false;
+    }
+    log_i("connected");
+    client.subscribe(MQTT_TOPIC_COMMAND);
+    return true;
+}
+
+void mqtt_message_received(String &topic, String &payload) {
+    if (topic == MQTT_TOPIC_COMMAND) {
+        if (command_handler != NULL) {
+            if (!command_handler(payload)) {
+                log_e("cmd:\"%s\" execute failed", payload.c_str());
+            }
+        }
+    } else {
+        log_i("topic received :%s, msg:%s", topic.c_str(), payload.c_str());
+    }
+}
+
+void MQTT_Setup() {
+    client.begin(serverIPAdressString.c_str(), net);
+    client.onMessage(mqtt_message_received);
+    MQTT_Connect();
+}
+
+void MQTT_Check() {
+    client.loop();
+    if (!client.connected()) {
+        MQTT_Connect();
+    }
+}
+
+#define JSON_BUFFER_SIZE 512
+DynamicJsonDocument doc(1024);
+char json_buffer[JSON_BUFFER_SIZE];
+
+void MQTT_Upload() {
+    doc["sensor"]["temperature"] = Sensors::getTemperature();
+    doc["sensor"]["pressture"] = Sensors::getPressure();
+    doc["sensor"]["light"] = Sensors::getLight();
+    doc["peripheral"]["relay"] = Relay_Get();
+    doc["peripheral"]["led"] = LED_Get();
+    doc["peripheral"]["beeper"] = Beep_Get();
+    doc["peripheral"]["motor"] = MotorControl_GetSpeed();
+    doc["system"]["time"] = getUnixTime();
+    doc["system"]["temperature"] = temperatureRead();
+
+    serializeJson(doc, json_buffer, JSON_BUFFER_SIZE);
+    log_d("MQTT msg:%s", json_buffer);
+    if (!client.publish(MQTT_TOPIC_STATE, json_buffer)) {
+        log_e("MQTT msg send failed");
+    }
+}
+
 void BlueTooth_Setup() {
     SerialBT.register_callback(blueToothCallback);
     SerialBT.begin(blueToothName);
@@ -274,6 +355,17 @@ int setUnixtime(time_t unixtime) {
     timeval epoch = {unixtime, 0};
     return settimeofday((const timeval*)&epoch, 0);
 }
+
+time_t getUnixTime() {
+    time_t now;
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+        return 0;
+    }
+    time(&now);
+    return now;
+}
+
 
 void Preferences_UpdateTimeStamp() {
     timeval epoch;

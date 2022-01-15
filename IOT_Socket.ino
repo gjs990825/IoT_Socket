@@ -21,6 +21,7 @@ void setup() {
     Preferences_Init();
 
     // Connections setup
+    MQTT_Setup();
     BlueTooth_Setup();
     WIFI_Setup();
     NTP_Setup();
@@ -97,6 +98,7 @@ void loop() {
     TASK(100) {
         Command_CheckSerial();
         CommandQueue_Handle();
+        MQTT_Check();
     }
 
     TASK(10) {
@@ -154,6 +156,7 @@ void loop() {
 
             if (test_server_connection()) {  
                 interactions();      
+                MQTT_Upload();
             } else {
                 log_e("Service down:%d, retry after %ds\n", 
                     get_access_fail_count(),

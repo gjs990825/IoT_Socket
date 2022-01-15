@@ -72,6 +72,7 @@ void Beep_Flip();
 
 void MotorControl_Setup();
 void MotorControl_SetSpeed(int val);
+int MotorControl_GetSpeed();
 
 void OLED_Setup();
 void BMP280_Setup();
@@ -88,8 +89,13 @@ void Preferences_UpdateTimeStamp(long t);
 void Preferences_UpdateTimeStamp();
 void BlueTooth_Setup();
 bool WIFI_Setup();
+void MQTT_Setup();
+void MQTT_SetCommandHandler(bool (*handler)(String));
+void MQTT_Check();
+void MQTT_Upload();
 void NTP_Setup();
 int setUnixtime(time_t unixtime = timeStamp);
+time_t getUnixTime();
 String LocalTime_GetString();
 
 #endif // _BSP_H_

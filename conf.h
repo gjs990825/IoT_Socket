@@ -22,6 +22,10 @@ static const String serverBaseAddress = "http://" + serverIPAdressString + ":" +
 static const String serverDataHandler = serverBaseAddress + "/ESP32UploadData";
 static const String serverGetCommand = serverBaseAddress + "/ESP32GetCommand";
 
+static const String MQTT_TOPIC_COMMAND = "IoT_Socket/Command";
+static const String MQTT_TOPIC_STATE = "IoT_Socket/State";
+
+
 // Time
 static const char *ntpServer = "ntp.aliyun.com";
 static const int gmtOffset = 3600 * 8;

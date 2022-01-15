@@ -399,6 +399,7 @@ void Command_Init() {
     lwshell_init();
     Command_OutputControl(true);
     lwshell_register_cmd();
+    MQTT_SetCommandHandler(Command_Run);
 }
 
 void Command_CheckSerial() {
