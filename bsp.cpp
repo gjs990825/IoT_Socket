@@ -4,11 +4,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Preferences.h>
-#include <BluetoothSerial.h>
 #include "infrared.h"
-#include <MQTT.h>
-#include <ArduinoJson.h>
-#include "sensors.h"
 
 const uint8_t LED1_CHANNEL = 0;
 
@@ -172,7 +168,6 @@ void BMP280_Setup() {
     }
 }
 
-BluetoothSerial SerialBT;
 Preferences preferences;
 
 void Preferences_Init() {
@@ -243,7 +238,7 @@ bool WIFI_Setup() {
     WiFi.setAutoReconnect(true);
     Serial.println("Connecting");
     int retry = 0;
-    while (WiFi.status() != WL_CONNECTED) {
+    while (!WIFI_IsConnected()) {
         delay(500);
         Serial.print(".");
         if (++retry > 10) {
@@ -262,96 +257,7 @@ bool WIFI_Setup() {
     return true;
 }
 
-void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
-{
-    if (event == ESP_SPP_DATA_IND_EVT)
-    {
-        String btString = SerialBT.readString();
-        log_i("BT:%s", btString.c_str());
-        SerialBT.printf(":\"%s\"\n", btString.c_str());
-        Preferences_UpdateWIFISetting(btString);
-    }
-    if (event == ESP_SPP_CL_INIT_EVT) {
-        log_i("BT Connected");
-    }
-}
-
-
-WiFiClient net;
-MQTTClient client(512);
-
-bool (*command_handler)(String cmd) = NULL;
-
-void MQTT_SetCommandHandler(bool (*handler)(String)) {
-    command_handler = handler;
-}
-
-bool MQTT_Connect() {
-    if (WiFi.status() != WL_CONNECTED) {
-        log_e("no connection, mqtt connect failed");
-        return false;
-    }
-    if (!client.connect("IoT_Socket", "esp32", "password")) {
-        log_e("disconnected");
-        return false;
-    }
-    log_i("connected");
-    client.subscribe(MQTT_TOPIC_COMMAND);
-    return true;
-}
-
-void mqtt_message_received(String &topic, String &payload) {
-    if (topic == MQTT_TOPIC_COMMAND) {
-        if (command_handler != NULL) {
-            log_i("command received:%s", payload.c_str());
-            if (!command_handler(payload)) {
-                log_e("cmd:\"%s\" execute failed", payload.c_str());
-            }
-        }
-    } else {
-        log_i("topic received :%s, msg:%s", topic.c_str(), payload.c_str());
-    }
-}
-
-void MQTT_Setup() {
-    client.begin(serverIPAdressString.c_str(), net);
-    client.onMessage(mqtt_message_received);
-    MQTT_Connect();
-}
-
-void MQTT_Check() {
-    client.loop();
-    if (!client.connected()) {
-        MQTT_Connect();
-    }
-}
-
-#define JSON_BUFFER_SIZE 512
-DynamicJsonDocument doc(1024);
-char json_buffer[JSON_BUFFER_SIZE];
-
-void MQTT_Upload() {
-    doc["sensor"]["temperature"] = Sensors::getTemperature();
-    doc["sensor"]["pressture"] = Sensors::getPressure();
-    doc["sensor"]["brightness"] = Sensors::getBrightness();
-    doc["peripheral"]["relay"] = Relay_Get();
-    doc["peripheral"]["led"] = LED_Get();
-    doc["peripheral"]["beeper"] = Beeper_Get();
-    doc["peripheral"]["motor"] = MotorControl_GetSpeed();
-    doc["system"]["time"] = getUnixTime();
-    doc["system"]["temperature"] = temperatureRead();
-
-    serializeJson(doc, json_buffer, JSON_BUFFER_SIZE);
-    log_d("MQTT msg:%s", json_buffer);
-    if (!client.publish(MQTT_TOPIC_STATE, json_buffer)) {
-        log_e("MQTT msg send failed");
-    }
-}
-
-void BlueTooth_Setup() {
-    SerialBT.register_callback(blueToothCallback);
-    SerialBT.begin(blueToothName);
-}
+bool WIFI_IsConnected() { return  WiFi.status() == WL_CONNECTED; }
 
 int setUnixtime(time_t unixtime) {
     timeval epoch = {unixtime, 0};

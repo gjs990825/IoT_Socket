@@ -5,6 +5,9 @@
 #include <CronAlarms.h>
 #include "infrared.h"
 #include "command.h"
+#include "mqtt_connection.h"
+#include "bluetooth_connection.h"
+#include "json_helper.h"
 
 void setup() {
     // Basic peripheral
@@ -21,13 +24,15 @@ void setup() {
     Preferences_Init();
 
     // Connections setup
-    MQTT_Setup();
-    BlueTooth_Setup();
     WIFI_Setup();
     NTP_Setup();
+    MQTT_Setup();
+    Bluetooth_Setup();
 
     // Command system
     Command_Init();
+    MQTT_SetCommandHandler(Command_Run);
+    Bluetooth_SetCommandHandler(Command_Run);
 
     log_i("SYS OK");
 }
@@ -135,17 +140,23 @@ void loop() {
     }
         
     TASK(1500) {
-        static unsigned long t = 0;
-        if (get_retry_after() * 1000 + t < millis()) {
-            t = millis();
+        if (Bluetooth_IsConnected() || WIFI_IsConnected()) {
+            const char* buffer = parse_json_buffer();;
+            if (Bluetooth_IsConnected()) {
+                Bluetooth_Send(buffer);
+            }
 
-            if (test_server_connection()) {  
-                interactions();      
-                MQTT_Upload();
-            } else {
-                log_e("Service down:%d, retry after %ds\n", 
-                    get_access_fail_count(),
-                    get_retry_after());
+            static unsigned long t = 0;
+            if (get_retry_after() * 1000 + t < millis()) {
+                t = millis();
+
+                if (test_server_connection()) {
+                    MQTT_Send(buffer);
+                } else {
+                    log_e("Service down:%d, retry after %ds\n", 
+                        get_access_fail_count(),
+                        get_retry_after());
+                }
             }
         }
     }

@@ -399,14 +399,13 @@ void Command_Init() {
     lwshell_init();
     Command_OutputControl(true);
     lwshell_register_cmd();
-    MQTT_SetCommandHandler(Command_Run);
 }
 
 void Command_CheckSerial() {
     const unsigned int MAX_MESSAGE_LENGTH = 80;
     while (Serial.available() > 0) {
         static char message[MAX_MESSAGE_LENGTH];
-        static unsigned int message_pos = 0;
+        static unsigned int message_pos;
 
         char inByte = Serial.read();
         if (inByte != '\n' && (message_pos < MAX_MESSAGE_LENGTH - 1)) {
