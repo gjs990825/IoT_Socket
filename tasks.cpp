@@ -22,10 +22,10 @@ const action_t actions[] = {
     {"led_on",      [](bool sta){ LED_Set(true);	        }},
     {"led_off",     [](bool sta){ LED_Set(false);	        }},
     {"led_flip",    [](bool sta){ LED_Flip();		        }},
-    {"beep",        [](bool sta){ Beep_Set(sta);	        }},
-    {"beep_on",     [](bool sta){ Beep_Set(true);	        }},
-    {"beep_off",    [](bool sta){ Beep_Set(false);	        }},
-    {"beep_flip",   [](bool sta){ Beep_Flip();		        }},
+    {"beeper",      [](bool sta){ Beeper_Set(sta);	        }},
+    {"beeper_on",   [](bool sta){ Beeper_Set(true);	        }},
+    {"beeper_off",  [](bool sta){ Beeper_Set(false);	    }},
+    {"beeper_flip", [](bool sta){ Beeper_Flip();		    }},
     {"ir_preset_0", [](bool sta){ Infrared_SendPreset(0);   }},
     {"ir_preset_1", [](bool sta){ Infrared_SendPreset(1);   }},
     {"ir_preset_2", [](bool sta){ Infrared_SendPreset(2);   }},
@@ -66,7 +66,7 @@ const float F_FALSE = 0.0;
 const condition_t conditions[] = {
     {"temperature",	Sensors::getTemperature				},
     {"pressure",	Sensors::getPressure				},
-    {"light",		Sensors::getLight					},
+    {"brightness",	Sensors::getBrightness				},
     {"true",		[]() -> float { return F_TRUE; }	},
     {"false",		[]() -> float { return F_FALSE; }	},
 };
@@ -285,7 +285,7 @@ void reset_to_default_state() {
     alarm_clear();
     Relay_Set(false);
     LED_Set(false);
-    Beep_Set(false);
+    Beeper_Set(false);
 }
 
 const struct {
@@ -296,7 +296,7 @@ const struct {
     { [](){ return alarm_get_count() != 0; },   'A'},
     { [](){ return true; },                     '|'},
     { Relay_Get,                                'R'},
-    { Beep_Get,                                 'B'},
+    { Beeper_Get,                               'B'},
     { [](){ return LED_Get() != 0; },           'L'},
 };
 

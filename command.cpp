@@ -111,11 +111,11 @@ int32_t relay_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-// 0    1
-// beep sta
-int32_t beep_cmd(int32_t argc, char** argv) {
+// 0        1
+// beeper   sta
+int32_t beeper_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Beep_Set(atoi(argv[1]));
+    Beeper_Set(atoi(argv[1]));
     return 0;
 }
 
@@ -131,9 +131,9 @@ const struct {
     {"led_on",      [](){ LED_Set(true);	        }},
     {"led_off",     [](){ LED_Set(false);	        }},
     {"led_flip",    [](){ LED_Flip();		        }},
-    {"beep_on",     [](){ Beep_Set(true);	        }},
-    {"beep_off",    [](){ Beep_Set(false);	        }},
-    {"beep_flip",   [](){ Beep_Flip();		        }},
+    {"beeper_on",   [](){ Beeper_Set(true);	        }},
+    {"beeper_off",  [](){ Beeper_Set(false);	    }},
+    {"beeper_flip", [](){ Beeper_Flip();		    }},
     {"ir_preset_0", [](){ Infrared_SendPreset(0);   }},
     {"ir_preset_1", [](){ Infrared_SendPreset(1);   }},
     {"ir_preset_2", [](){ Infrared_SendPreset(2);   }},
@@ -237,7 +237,7 @@ const struct {
 } conditions[] = {
     {"temperature",	Sensors::getTemperature         },
     {"pressure",	Sensors::getPressure	        },
-    {"light",		Sensors::getLight		        },
+    {"brightness",  Sensors::getBrightness          },
     {"true",		[]() -> float { return 0.0; }   },
     {"false",		[]() -> float { return 1.0; }   },
 };
@@ -262,7 +262,7 @@ float map_float(float x, float in_min, float in_max, float out_min, float out_ma
 
 // 0        1       2           3           4+
 // handler  action  condition   type        params+
-// handler  relay   light       higher      1.5
+// handler  relay   brightness  higher      1.5
 // handler  led     condition   linear      in_l    in_h    out_l   out_h
 // handler  led     condition   interval    low     high   
 int32_t handler_cmd(int32_t argc, char** argv) {
@@ -365,7 +365,7 @@ const struct {
     {"led",         led_cmd,        "Led brightness control"    },
     {"motor",       motor_cmd,      "Motor speed control"       },
     {"relay",       relay_cmd,      "Relay control"             },
-    {"beep",        beep_cmd,       "Beeper control"            },
+    {"beeper",      beeper_cmd,     "Beeper control"            },
     {"alarm",       alarm_cmd,      "Alarm setting"             },
     {"task",        task_cmd,       "Task setting"              },
 };

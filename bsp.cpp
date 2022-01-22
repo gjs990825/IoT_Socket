@@ -31,18 +31,18 @@ void LED_Flip() {
 }
 
 void LED_Setup() {
-    pinMode(LED1, OUTPUT);
+    pinMode(LED1_PIN, OUTPUT);
     ledcSetup(LED1_CHANNEL, 1000, 8);
-    ledcAttachPin(LED1, LED1_CHANNEL);
+    ledcAttachPin(LED1_PIN, LED1_CHANNEL);
     LED_Set(false);
 }
 
 void KEY_Setup() {
-    pinMode(K1, INPUT_PULLUP);
-    pinMode(K2, INPUT_PULLUP);
+    pinMode(KEY1, INPUT_PULLUP);
+    pinMode(KEY2, INPUT_PULLUP);
 }
 
-const int keys[] = {K1, K2};
+const int keys[] = {KEY1, KEY2};
 const int key_count = sizeof(keys) / sizeof(keys[0]);
 
 int key_get(void) {
@@ -97,33 +97,33 @@ void Relay_Flip() {
 }
 
 void Relay_Setup() {
-    pinMode(RELAY, OUTPUT);
+    pinMode(RELAY_PIN, OUTPUT);
     Relay_Set(false);
 }
 
-bool beep_status = false;
-bool Beep_Get() {
-    return beep_status;
+bool beeper_status = false;
+bool Beeper_Get() {
+    return beeper_status;
 }
 
-void Beep_Set(bool sta) {
-    beep_status = sta;
-    BEEP_SET(sta);
+void Beeper_Set(bool sta) {
+    beeper_status = sta;
+    BEEPER_SET(sta);
 }
 
-void Beep_Setup() {
-    pinMode(BEEP, OUTPUT);
-    Beep_Set(false);
+void Beeper_Setup() {
+    pinMode(BEEPER_PIN, OUTPUT);
+    Beeper_Set(false);
 }
 
-void Beep_Flip() {
-    Beep_Set(!Beep_Get());
+void Beeper_Flip() {
+    Beeper_Set(!Beeper_Get());
 }
 
 void MotorControl_Setup() {
     pinMode(PWM_OUT_PIN, OUTPUT);
-    pinMode(M_CTL_A_PIN, OUTPUT);
-    pinMode(M_CTL_B_PIN, OUTPUT);
+    pinMode(MOTOR_CTL_A_PIN, OUTPUT);
+    pinMode(MOTOR_CTL_B_PIN, OUTPUT);
     ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
     ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
 }
@@ -134,8 +134,9 @@ void MotorControl_SetSpeed(int val) {
     motor_speed = val;
     val = constrain(val, -100, 100);
     bool is_positive = val >= 0;
-    digitalWrite(M_CTL_A_PIN, is_positive);
-    digitalWrite(M_CTL_B_PIN, !is_positive);
+    digitalWrite(MOTOR_CTL_A_PIN, is_positive);
+    digitalWrite(MOTOR_CTL_B_PIN, !is_positive);
+    // 0 ~ 100 => 0 ~ 2^10
     uint32_t duty = (uint32_t)map(abs(val), 0, 100, 0, 0x3FF);
     ledcWrite(MOTOR_PWM_CHANNEL, duty);
 }
@@ -144,7 +145,7 @@ int MotorControl_GetSpeed() {
     return motor_speed;
 }
 
-Adafruit_SSD1306 OLED(128, 64, OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+Adafruit_SSD1306 OLED(128, 64, OLED_MOSI_PIN, OLED_CLK_PIN, OLED_DC_PIN, OLED_RESET_PIN, OLED_CS_PIN);
 
 void OLED_Setup() {
     OLED.begin(SSD1306_SWITCHCAPVCC);
@@ -159,7 +160,7 @@ void OLED_Setup() {
 Adafruit_BMP280 BMP280;
 
 void BMP280_Setup() {
-    Wire.begin(BMP280_SDA, BMP280_SCL);
+    Wire.begin(BMP280_SDA_PIN, BMP280_SCL_PIN);
     if (!BMP280.begin(BMP280_ADDRESS_ALT)) {
         log_e("BMP280 ERR!");
     } else {
@@ -302,6 +303,7 @@ bool MQTT_Connect() {
 void mqtt_message_received(String &topic, String &payload) {
     if (topic == MQTT_TOPIC_COMMAND) {
         if (command_handler != NULL) {
+            log_i("command received:%s", payload.c_str());
             if (!command_handler(payload)) {
                 log_e("cmd:\"%s\" execute failed", payload.c_str());
             }
@@ -331,10 +333,10 @@ char json_buffer[JSON_BUFFER_SIZE];
 void MQTT_Upload() {
     doc["sensor"]["temperature"] = Sensors::getTemperature();
     doc["sensor"]["pressture"] = Sensors::getPressure();
-    doc["sensor"]["light"] = Sensors::getLight();
+    doc["sensor"]["brightness"] = Sensors::getBrightness();
     doc["peripheral"]["relay"] = Relay_Get();
     doc["peripheral"]["led"] = LED_Get();
-    doc["peripheral"]["beeper"] = Beep_Get();
+    doc["peripheral"]["beeper"] = Beeper_Get();
     doc["peripheral"]["motor"] = MotorControl_GetSpeed();
     doc["system"]["time"] = getUnixTime();
     doc["system"]["temperature"] = temperatureRead();
@@ -365,7 +367,6 @@ time_t getUnixTime() {
     time(&now);
     return now;
 }
-
 
 void Preferences_UpdateTimeStamp() {
     timeval epoch;

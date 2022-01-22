@@ -5,6 +5,10 @@
 
 class Sensors {
 private:
+    static float tempearature;
+    static float pressure;
+    static int brightness;
+
 public:
     Sensors();
     ~Sensors();
@@ -15,11 +19,7 @@ public:
 
     static float getTemperature();
     static float getPressure();
-    static float getLight();
-
-    static float tempearature;
-    static float pressure;
-    static float light;
+    static float getBrightness();
 };
 
 #endif // _SENSORS_H_

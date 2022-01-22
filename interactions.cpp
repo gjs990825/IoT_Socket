@@ -40,12 +40,12 @@ bool test_server_connection() {
 void Upload_Data() {
     HTTPClient http;
     String serverPath = serverDataHandler +
-                        "?temperature=" + Sensors::tempearature +
-                        "&pressure=" + Sensors::pressure +
-                        "&light=" + Sensors::light + 
+                        "?temperature=" + Sensors::getTemperature() +
+                        "&pressure=" + Sensors::getPressure() +
+                        "&brightness=" + Sensors::getBrightness() + 
                         "&relay=" + Relay_Get() + 
                         "&led=" + LED_Get() + 
-                        "&beep=" + Beep_Get();
+                        "&beeper=" + Beeper_Get();
 
     log_d("Access:%s", serverPath.c_str());
     http.begin(serverPath.c_str());

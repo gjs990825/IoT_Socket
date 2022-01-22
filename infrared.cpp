@@ -53,7 +53,7 @@ bool Infrared_SendPreset(int n) {
         log_e("preset %d does not exist", n);
         return false;
     }
-    IrSender.begin(IR_OUT_PIN, true);
+    IrSender.begin(INFRARED_OUT_PIN, true);
     IrSender.sendRaw(ir_preset[n]->code, ir_preset[n]->len, 38);
     log_i("infrared preset %d sent", n);
     return true;
@@ -62,7 +62,7 @@ bool Infrared_SendPreset(int n) {
 void Infrared_StartCapture() {
     log_i("infrared capture start");
     ir_is_capturing = true;
-    IrReceiver.begin(IR_IN_PIN);
+    IrReceiver.begin(INFRARED_IN_PIN);
 }
 
 bool Infrared_EndCapture(int n) {

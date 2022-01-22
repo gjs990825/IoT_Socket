@@ -10,7 +10,7 @@ void setup() {
     // Basic peripheral
     Serial.begin(115200);
     LED_Setup();
-    Beep_Setup();
+    Beeper_Setup();
     KEY_Setup();
     Relay_Setup();
     OLED_Setup();
@@ -41,8 +41,8 @@ void OLED_UpdateInfo() {
     OLED.setTextSize(1);
     OLED.printf("\nTemperature:%.3f\n\n", Sensors::getTemperature());
     OLED.printf("Pressure:%.3f\n\n", Sensors::getPressure());
-    OLED.printf("Light:%.2f", Sensors::getLight());
-    OLED.printf("  [%s]", get_state_string().c_str()); // states indicator
+    OLED.printf("Brightness:%d", (int)Sensors::getBrightness());
+    OLED.printf(" %s", get_state_string().c_str()); // states indicator
     OLED.display();
 }
 
@@ -80,21 +80,6 @@ void key2_long_press() {
 }
 
 void loop() {
-    // // test
-    // TASK(10) {
-    //     static int speed;
-    //     static int adding_value = 1;
-
-    //     if (speed >= 100) {
-    //         adding_value = -1;
-    //     }
-    //     else if (speed <= -100) {
-    //         adding_value = 1;
-    //     }
-    //     speed += adding_value;
-    //     MotorControl_SetSpeed(speed);
-    // }
-
     TASK(100) {
         Command_CheckSerial();
         CommandQueue_Handle();
@@ -106,13 +91,13 @@ void loop() {
     }
 
     TASK(50) {
-        if (key_is(K1, KEY_PRESS)) {
-            while (key_is(K1, KEY_PRESS)) {
+        if (key_is(KEY1, KEY_PRESS)) {
+            while (key_is(KEY1, KEY_PRESS)) {
                 key_scan();
             }
-            if (key_is(K1, KEY_LONG_PRESS)) {
+            if (key_is(KEY1, KEY_LONG_PRESS)) {
                 key1_long_press();
-                while (key_is(K1, KEY_LONG_PRESS)) {
+                while (key_is(KEY1, KEY_LONG_PRESS)) {
                     key_scan();
                 }
             } else {
@@ -120,13 +105,13 @@ void loop() {
             }
         }
 
-        if (key_is(K2, KEY_PRESS)) {
-            while (key_is(K2, KEY_PRESS)) {
+        if (key_is(KEY2, KEY_PRESS)) {
+            while (key_is(KEY2, KEY_PRESS)) {
                 key_scan();
             }
-            if (key_is(K2, KEY_LONG_PRESS)) {
+            if (key_is(KEY2, KEY_LONG_PRESS)) {
                 key2_long_press();
-                while (key_is(K2, KEY_LONG_PRESS)) {
+                while (key_is(KEY2, KEY_LONG_PRESS)) {
                     key_scan();
                 }
             } else {
