@@ -8,5 +8,6 @@ void MQTT_Setup();
 void MQTT_SetCommandHandler(bool (*handler)(String));
 void MQTT_Check();
 void MQTT_Send(const char *payload);
+void MQTT_Ack(bool status);
 
 #endif // _MQTT_CONNECTION_H_

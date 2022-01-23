@@ -20,7 +20,7 @@ bool MQTT_Connect() {
         log_e("no connection, mqtt connect failed");
         return false;
     }
-    if (!client.connect("IoT_Socket", "esp32", "password")) {
+    if (!client.connect(MQTT_CLIENT_ID, MQTT_USER_NAME, MQTT_PASSWORD)) {
         log_e("disconnected");
         return false;
     }
@@ -33,7 +33,9 @@ void mqtt_message_received(String &topic, String &payload) {
     if (topic == MQTT_TOPIC_COMMAND) {
         if (mqtt_command_handler != NULL) {
             log_i("command received:%s", payload.c_str());
-            if (!mqtt_command_handler(payload)) {
+            bool status = mqtt_command_handler(payload);
+            MQTT_Ack(status);
+            if (!status) {
                 log_e("cmd:\"%s\" execute failed", payload.c_str());
             }
         }
@@ -59,5 +61,12 @@ void MQTT_Send(const char *payload) {
     log_d("MQTT msg:%s", payload);
     if (!client.publish(MQTT_TOPIC_STATE, payload)) {
         log_e("MQTT msg send failed");
+    }
+}
+
+void MQTT_Ack(bool status) {
+    log_i("MQTT ack:%d", status);
+    if (!client.publish(MQTT_TOPIC_ACK, status ? ACK_OK : ACK_FAIL)) {
+        log_e("MQTT ack failed");
     }
 }

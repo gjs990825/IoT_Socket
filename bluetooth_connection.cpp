@@ -16,7 +16,12 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
         if (bluetooth_command_handler != NULL) {
             String btString = SerialBT.readString();
             log_i("BT:%s", btString.c_str());
-            bluetooth_command_handler(btString);
+
+            bool status = bluetooth_command_handler(btString);
+            Bluetooth_Ack(status);
+            if (!status) {
+                log_e("cmd:\"%s\" execute failed", btString.c_str());
+            }
         }
     }
     if (event == ESP_SPP_CL_INIT_EVT) {
@@ -32,6 +37,11 @@ void Bluetooth_Setup() {
 void Bluetooth_Send(const char *payload) {
     log_d("Bluetooth Upload:%s", payload);
     SerialBT.println(payload);
+}
+
+void Bluetooth_Ack(bool status) {
+    log_i("Bluetooth ack:%d", status);
+    SerialBT.println(status ? ACK_OK : ACK_FAIL);
 }
 
 bool Bluetooth_IsConnected() { return SerialBT.connected(); }

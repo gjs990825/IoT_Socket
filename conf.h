@@ -8,9 +8,6 @@
 
 static const String DEVICE_NAME = "IoT_Socket";
 
-// BT
-static const String BLUETOOTH_NAME = DEVICE_NAME;
-
 // WIFI
 static String ssid = "";
 static String password = "";
@@ -27,6 +24,10 @@ static const String HTTP_BASE_ADDRESS = "http://" + SERVER_IP_ADDRESS_STRING + "
 static const String HTTP_DATA_HANDLER = HTTP_BASE_ADDRESS + "/ESP32UploadData";
 static const String HTTP_GET_COMMAND = HTTP_BASE_ADDRESS + "/ESP32GetCommand";
 
+// Acks
+const char *const ACK_OK = "OK";
+const char *const ACK_FAIL = "FAIL";
+
 // MQTT
 #define MQTT_CLIENT_BUFFER_SIZE 512
 
@@ -36,7 +37,10 @@ static const char *const MQTT_PASSWORD = "password";
 
 static const String MQTT_TOPIC_COMMAND = DEVICE_NAME + "/Command";
 static const String MQTT_TOPIC_STATE = DEVICE_NAME + "/State";
-static const String MQTT_TOPIC_REPORT = DEVICE_NAME + "/Report";
+static const String MQTT_TOPIC_ACK = DEVICE_NAME + "/Ack";
+
+// BT
+static const String BLUETOOTH_NAME = DEVICE_NAME;
 
 // Time
 static const char *const NTP_SERVER = "ntp.aliyun.com";
