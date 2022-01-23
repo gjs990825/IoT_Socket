@@ -18,8 +18,8 @@
 // 0        1       2           3
 // infrared send    preset_id
 // infrared remove  preset_id
-// infrared capture start
-// infrared cpature end         preset_id
+// infrared capture start       preset_id
+// infrared cpature end
 int32_t infrared_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
@@ -33,11 +33,12 @@ int32_t infrared_cmd(int32_t argc, char** argv) {
         CHECK_ARGC(2);
         flag = argv[2];
         if (flag.equalsIgnoreCase("start")) {
-            Infrared_StartCapture();
-        } else if (flag.equalsIgnoreCase("end")) {
             CHECK_ARGC(3);
-            if (Infrared_EndCapture(atoi(argv[3])))
-                Infrared_StorePreset(Preferences_Get());
+            Infrared_StartCapture(atoi(argv[3]));
+        } else if (flag.equalsIgnoreCase("end")) {
+            if (Infrared_EndCapture()) {
+                Infrared_StorePreset();
+            }
         } else {
             FLAG_NOT_MATCH();
         }
@@ -428,12 +429,13 @@ std::queue<String> cmd_queue;
 
 constexpr uint8_t MAX_CMD_QUEUE = 10;
 
-void CommandQueue_Add(String cmd) {
+bool CommandQueue_Add(String cmd) {
     if (cmd_queue.size() >= MAX_CMD_QUEUE) {
         log_e("command queue full");
-        return;
+        return false;
     }
     cmd_queue.push(cmd);
+    return true;
 }
 
 void CommandQueue_Handle() {

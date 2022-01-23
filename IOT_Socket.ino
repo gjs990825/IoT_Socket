@@ -31,7 +31,7 @@ void setup() {
 
     // Command system
     Command_Init();
-    MQTT_SetCommandHandler(Command_Run);
+    MQTT_SetCommandHandler(CommandQueue_Add);
     Bluetooth_SetCommandHandler(Command_Run);
 
     log_i("SYS OK");
@@ -58,9 +58,9 @@ void key1_press() {
 
 void key1_long_press() {
     if (!Infrared_IsCapturing()) {
-        Infrared_StartCapture();
+        Infrared_StartCapture(0);
     } else {
-        if (Infrared_EndCapture(0)) {
+        if (Infrared_EndCapture()) {
             Infrared_StorePreset(Preferences_Get());
         }
     }
@@ -76,19 +76,22 @@ void key2_press() {
 void key2_long_press() {
     log_i("key2 long press");
     if (!Infrared_IsCapturing()) {
-        Infrared_StartCapture();
+        Infrared_StartCapture(1);
     } else {
-        if (Infrared_EndCapture(1)) {
+        if (Infrared_EndCapture()) {
             Infrared_StorePreset(Preferences_Get());
         } 
     }
 }
 
 void loop() {
-    TASK(100) {
+    TASK(200) {
         Command_CheckSerial();
         CommandQueue_Handle();
-        MQTT_Check();
+        Infrared_CheckCapture();
+        if (!Infrared_IsCapturing()) {
+            MQTT_Check();
+        }
     }
 
     TASK(10) {
@@ -125,10 +128,6 @@ void loop() {
         }
     }
 
-    if (Infrared_IsCapturing()) {
-        return;
-    }
-
     TASK(450) {
         Sensors::updateAll();
         task_check();
@@ -150,12 +149,14 @@ void loop() {
             if (get_retry_after() * 1000 + t < millis()) {
                 t = millis();
 
-                if (test_server_connection()) {
-                    MQTT_Send(buffer);
-                } else {
-                    log_e("Service down:%d, retry after %ds\n", 
-                        get_access_fail_count(),
-                        get_retry_after());
+                if (!Infrared_IsCapturing()) {
+                    if (test_server_connection()) {
+                        MQTT_Send(buffer);
+                    } else {
+                        log_e("Service down:%d, retry after %ds\n", 
+                            get_access_fail_count(),
+                            get_retry_after());
+                    }
                 }
             }
         }

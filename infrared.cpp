@@ -59,10 +59,36 @@ bool Infrared_SendPreset(int n) {
     return true;
 }
 
-void Infrared_StartCapture() {
-    log_i("infrared capture start");
+int capture_id = 0;
+unsigned long capture_time = 0;
+
+void Infrared_CheckCapture() {
+    if (Infrared_IsCapturing() && capture_time + INFRARED_CAPTURE_TIMEOUT < millis()) {
+        if (Infrared_EndCapture()) {
+            Infrared_StorePreset();
+        }
+    }
+}
+
+bool Infrared_StartCapture(int n) {
+    ASSERT_PRESET_NUM(n);
+
+    capture_id = n; capture_time = millis();
+
+    log_i("infrared capture %d start", capture_id);
     ir_is_capturing = true;
     IrReceiver.begin(INFRARED_IN_PIN);
+    return true;
+}
+
+// void Infrared_StartCapture() {
+//     log_i("infrared capture start");
+//     ir_is_capturing = true;
+//     IrReceiver.begin(INFRARED_IN_PIN);
+// }
+
+bool Infrared_EndCapture() {
+    return Infrared_EndCapture(capture_id);
 }
 
 bool Infrared_EndCapture(int n) {
@@ -105,15 +131,25 @@ void Infrared_RestorePreset(Preferences &pref) {
     }
 }
 
-void Infrared_StorePreset(Preferences &pref) {
+bool Infrared_StorePreset(int n, Preferences &pref) {
+    ASSERT_PRESET_NUM(n);
     infrared_code_t ir_code;
+    if (Infrared_GetPreset(n, ir_code)) {
+        pref.putBytes((INFRARED_PRESET_PREFIX + n).c_str(),
+                      &ir_code,
+                      sizeof(infrared_code_t));
+        log_i("preset %d stored", n);
+    }
+    return true;
+}
+
+void Infrared_StorePreset() {
+    Infrared_StorePreset(capture_id, Preferences_Get());
+}
+
+void Infrared_StorePreset(Preferences &pref) {
     for (int i = 0; i < IR_PRESET_NUM; i++) {
-        if (Infrared_GetPreset(i, ir_code)) {
-            pref.putBytes((INFRARED_PRESET_PREFIX + i).c_str(),
-                          &ir_code,
-                          sizeof(infrared_code_t));
-            log_i("preset %d stored", i);
-        }
+        Infrared_StorePreset(i, pref);
     }
 }
 

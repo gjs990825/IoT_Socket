@@ -9,7 +9,7 @@ void Command_OutputControl(bool sta);
 bool Command_IsValid(String command);
 bool Command_Run(String cmd);
 
-void CommandQueue_Add(String cmd);
+bool CommandQueue_Add(String cmd);
 void CommandQueue_Handle();
 
 void _task_check();
