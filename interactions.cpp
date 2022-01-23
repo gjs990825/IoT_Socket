@@ -32,14 +32,14 @@ uint8_t get_retry_after() {
 }
 
 bool test_server_connection() {
-    bool ret = Ping.ping(serverIPAdress, 1);
+    bool ret = Ping.ping(SERVER_IP_ADDRESS, 1);
     update_access_fail_count(ret);
     return ret;
 }
 
 void Upload_Data() {
     HTTPClient http;
-    String serverPath = serverDataHandler +
+    String serverPath = HTTP_DATA_HANDLER +
                         "?temperature=" + Sensors::getTemperature() +
                         "&pressure=" + Sensors::getPressure() +
                         "&brightness=" + Sensors::getBrightness() + 
@@ -66,7 +66,7 @@ void Upload_Data() {
 
 void Get_Command() {
     HTTPClient http;
-    String serverPath = serverGetCommand;
+    String serverPath = HTTP_GET_COMMAND;
 
     log_d("Access:%s", serverPath.c_str());
     http.begin(serverPath.c_str());

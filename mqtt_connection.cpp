@@ -7,7 +7,7 @@
 #include "json_helper.h"
 
 WiFiClient net;
-MQTTClient client(512);
+MQTTClient client(MQTT_CLIENT_BUFFER_SIZE);
 
 bool (*mqtt_command_handler)(String cmd) = NULL;
 
@@ -43,7 +43,7 @@ void mqtt_message_received(String &topic, String &payload) {
 }
 
 void MQTT_Setup() {
-    client.begin(serverIPAdressString.c_str(), net);
+    client.begin(SERVER_IP_ADDRESS_STRING.c_str(), net);
     client.onMessage(mqtt_message_received);
     MQTT_Connect();
 }

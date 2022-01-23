@@ -2,6 +2,7 @@
 #define _MQTT_CONNECTION_H_
 
 #include <Arduino.h>
+#include "conf.h"
 
 void MQTT_Setup();
 void MQTT_SetCommandHandler(bool (*handler)(String));

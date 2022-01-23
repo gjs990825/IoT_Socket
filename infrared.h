@@ -3,13 +3,7 @@
 
 #include <stdint.h>
 #include <Preferences.h>
-
-#define INFRARED_CAPTURE_TIMEOUT 3000
-
-typedef struct {
-    uint8_t code[100];
-    uint8_t len;
-} infrared_code_t;
+#include "conf.h"
 
 bool Infrared_IsCapturing();
 // void Infrared_StartCapture();

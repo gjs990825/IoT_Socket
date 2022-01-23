@@ -2,6 +2,11 @@
 #include "bsp.h"
 #include <IRremote.h>
 
+typedef struct {
+    uint8_t code[INFRARED_CODE_LENGTH];
+    uint8_t len;
+} infrared_code_t;
+
 const String INFRARED_PRESET_PREFIX = "ir_preset_";
 
 infrared_code_t *ir_preset[] = {NULL, NULL, NULL, NULL};

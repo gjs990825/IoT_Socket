@@ -173,7 +173,7 @@ Preferences preferences;
 void Preferences_Init() {
     preferences.begin("wifi_access", false);
 
-#if defined(PREFERENCES_DEBUG)
+#if (PREFERENCES_DEBUG)
     preferences.clear(); // clear config
     log_w("Preferences cleared");
 #endif // PREFERENCES_DEBUG
@@ -282,7 +282,7 @@ void Preferences_UpdateTimeStamp() {
 
 void NTP_Setup() {
     setUnixtime();
-    configTime(gmtOffset, daylightOffset, ntpServer);
+    configTime(GMT_OFFSET, DAYLIGHT_OFFSET, NTP_SERVER);
 }
 
 String LocalTime_GetString() {

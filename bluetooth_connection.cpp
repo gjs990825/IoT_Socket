@@ -26,7 +26,7 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
 
 void Bluetooth_Setup() {
     SerialBT.register_callback(blueToothCallback);
-    SerialBT.begin(blueToothName);
+    SerialBT.begin(BLUETOOTH_NAME);
 }
 
 void Bluetooth_Send(const char *payload) {

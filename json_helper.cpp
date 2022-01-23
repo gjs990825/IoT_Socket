@@ -4,7 +4,7 @@
 #include "bsp.h"
 #include "sensors.h"
 
-DynamicJsonDocument doc(1024);
+DynamicJsonDocument doc(ARDUINOJSON_BUFFER_SIZE);
 char json_buffer[JSON_BUFFER_SIZE];
 
 char *parse_json_buffer() {
