@@ -1,7 +1,6 @@
 #if !defined(_BSP_H_)
 #define _BSP_H_
 
-#include "conf.h"
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_BMP280.h>
 #include <Preferences.h>
@@ -33,15 +32,13 @@ static const uint8_t MOTOR_CTL_A_PIN = 12,
 static const uint8_t PWM_OUT_PIN = 32;
 static const uint8_t MOTOR_PWM_CHANNEL = 1;
 
+#define KEY_PRESSED(KEY_PIN) (!digitalRead(KEY_PIN))
+#define RELAY_SET(STA) digitalWrite(RELAY_PIN, (STA) ? HIGH : LOW)
+#define BEEPER_SET(STA) digitalWrite(BEEPER_PIN, (STA) ? HIGH : LOW)
+
 // Peripherals
 extern Adafruit_SSD1306 OLED;
 extern Adafruit_BMP280 BMP280;
-
-// Macros
-#define KEY_PRESSED(ID) (!digitalRead(ID))
-// #define LED_SET(STA) LED_Set((STA) ? 0xFF : 0x00)
-#define RELAY_SET(STA) digitalWrite(RELAY_PIN, (STA) ? HIGH : LOW)
-#define BEEPER_SET(STA) digitalWrite(BEEPER_PIN, (STA) ? HIGH : LOW)
 
 typedef enum {
     KEY_RELEASE,
@@ -50,13 +47,6 @@ typedef enum {
     KEY_LONG_PRESS,
 } key_status_t;
 
-// Initialization and operation functions
-void LED_Set(uint8_t val);
-void LED_Set(bool sta);
-uint8_t LED_Get();
-void LED_Flip();
-void LED_Setup();
-
 void KEY_Setup();
 void key_scan();
 bool key_is(int id, key_status_t sta);
@@ -64,13 +54,20 @@ bool key_is_not(int id, key_status_t sta);
 int key_get_key();
 key_status_t key_get_status();
 
+void LED_Setup();
+void LED_Set(uint8_t val);
+void LED_Set(bool sta);
+uint8_t LED_Get();
+void LED_Flip();
+
+void Relay_Setup();
 void Relay_Set(bool);
 bool Relay_Get();
 void Relay_Flip();
-void Relay_Setup();
-bool Beeper_Get();
-void Beeper_Set(bool);
+
 void Beeper_Setup();
+void Beeper_Set(bool);
+bool Beeper_Get();
 void Beeper_Flip();
 
 void MotorControl_Setup();
@@ -84,16 +81,19 @@ float Photoresistor_GetVoltage();
 
 void Preferences_Init();
 Preferences& Preferences_Get();
-void Preferences_RestoreWIFISetting();
-bool Preferences_UpdateWIFISetting(String setting);
-bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password);
-void Preferences_RestoreTimeStamp();
-void Preferences_UpdateTimeStamp(long t);
-void Preferences_UpdateTimeStamp();
+
 bool WIFI_Setup();
 bool WIFI_IsConnected();
+void WiFi_RestoreSettings(Preferences &pref);
+bool WiFi_UpdateSetting(String setting, Preferences &pref);
+bool WiFi_UpdateSetting(const char *_ssid, const char *_password, Preferences &pref);
+
+void TimeStamp_Restore(Preferences &pref);
+void TimeStamp_Update(long t, Preferences &pref);
+void TimeStamp_Update(Preferences &pref);
+
 void NTP_Setup();
-int setUnixtime(time_t unixtime = timeStamp);
+int setUnixtime(time_t unixtime);
 time_t getUnixTime();
 String LocalTime_GetString();
 

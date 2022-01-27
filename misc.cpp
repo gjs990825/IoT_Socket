@@ -1,5 +1,6 @@
 #include "misc.h"
 #include "bsp.h"
+#include "conf.h"
 #include "alarms.h"
 #include "tasks.h"
 #include <ESP32Ping.h>

@@ -1,10 +1,10 @@
 #include "bsp.h"
+#include "conf.h"
 #include <WiFi.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Preferences.h>
-#include "infrared.h"
 
 const uint8_t LED1_CHANNEL = 0;
 
@@ -177,38 +177,34 @@ void Preferences_Init() {
     preferences.clear(); // clear config
     log_w("Preferences cleared");
 #endif // PREFERENCES_DEBUG
-
-    Preferences_RestoreWIFISetting();
-    Preferences_RestoreTimeStamp();
-    Infrared_RestorePreset(preferences);
 }
 
 Preferences& Preferences_Get() {
     return preferences;
 }
 
-void Preferences_RestoreWIFISetting() {
-    ssid = preferences.getString("pref_ssid");
-    password = preferences.getString("pref_pass");
+void WiFi_RestoreSettings(Preferences &pref) {
+    ssid = pref.getString("pref_ssid");
+    password = pref.getString("pref_pass");
     log_i("Wi-Fi setting restored: ssid:\"%s\" password:\"%s\"", 
         ssid.c_str(), password.c_str());
 }
 
-bool Preferences_UpdateWIFISetting(String setting) {
+bool WiFi_UpdateSetting(String setting, Preferences &pref) {
     char ssidBuf[20], passwordBuf[20];
     int res = sscanf(setting.c_str(), "SSID:%s PASS:%s", ssidBuf, passwordBuf);
     if (res >= 1) {
         if (res == 1) passwordBuf[0] = '\0';
-        return Preferences_UpdateWIFISetting(ssidBuf, passwordBuf);
+        return WiFi_UpdateSetting(ssidBuf, passwordBuf, pref);
     }
     return false;
 }
 
-bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password) {
+bool WiFi_UpdateSetting(const char *_ssid, const char *_password, Preferences &pref) {
     ssid = _ssid; password = _password;
     if (WIFI_Setup()) {
-        preferences.putString("pref_ssid", ssid);
-        preferences.putString("pref_pass", password);
+        pref.putString("pref_ssid", ssid);
+        pref.putString("pref_pass", password);
         log_i("Wi-Fi setting updated");
         return true;
     } else {
@@ -217,15 +213,15 @@ bool Preferences_UpdateWIFISetting(const char *_ssid, const char *_password) {
     }
 }
 
-void Preferences_RestoreTimeStamp() {
-    timeStamp = preferences.getLong("pref_time_stamp");
+void TimeStamp_Restore(Preferences &pref) {
+    timeStamp = pref.getLong("pref_time_stamp");
     log_i("time stamp restored:%ld", timeStamp);
 }
 
-void Preferences_UpdateTimeStamp(long t) {
+void TimeStamp_Update(long t, Preferences &pref) {
     if (t > 1577836800) { // 2020.01.01
         setUnixtime(t);
-        preferences.putLong("pref_time_stamp", t);
+        pref.putLong("pref_time_stamp", t);
         log_i("time preference updated");
     } else {
         log_e("time stamp error");
@@ -274,14 +270,14 @@ time_t getUnixTime() {
     return now;
 }
 
-void Preferences_UpdateTimeStamp() {
+void TimeStamp_Update(Preferences &pref) {
     timeval epoch;
     gettimeofday(&epoch, 0);
-    Preferences_UpdateTimeStamp(epoch.tv_sec);
+    TimeStamp_Update(epoch.tv_sec, pref);
 }
 
 void NTP_Setup() {
-    setUnixtime();
+    setUnixtime(timeStamp);
     configTime(GMT_OFFSET, DAYLIGHT_OFFSET, NTP_SERVER);
 }
 

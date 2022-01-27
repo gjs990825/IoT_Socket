@@ -1,9 +1,8 @@
 #include "mqtt_connection.h"
-#include <WiFi.h>
 #include <WiFiClient.h>
 #include <MQTTClient.h>
 #include "bsp.h"
-#include "sensors.h"
+#include "conf.h"
 #include "json_helper.h"
 #include "command.h"
 
@@ -17,7 +16,7 @@ void MQTT_SetCommandHandler(bool (*handler)(String)) {
 }
 
 bool MQTT_Connect() {
-    if (WiFi.status() != WL_CONNECTED) {
+    if (WIFI_IsConnected()) {
         log_e("no connection, mqtt connect failed");
         return false;
     }

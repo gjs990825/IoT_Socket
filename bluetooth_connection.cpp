@@ -1,6 +1,7 @@
 #include "bluetooth_connection.h"
 #include <BluetoothSerial.h>
 #include "bsp.h"
+#include "conf.h"
 #include "json_helper.h"
 
 BluetoothSerial SerialBT;

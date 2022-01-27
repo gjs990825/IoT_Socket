@@ -1,8 +1,6 @@
 #if !defined(_SENSORS_H_)
 #define _SENSORS_H_
 
-#include "bsp.h"
-
 class Sensors {
 private:
     static float tempearature;

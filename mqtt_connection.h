@@ -1,8 +1,7 @@
 #if !defined(_MQTT_CONNECTION_H_)
 #define _MQTT_CONNECTION_H_
 
-#include <Arduino.h>
-#include "conf.h"
+#include <WString.h>
 
 void MQTT_Setup();
 void MQTT_SetCommandHandler(bool (*handler)(String));

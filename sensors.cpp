@@ -1,4 +1,5 @@
 #include "Sensors.h"
+#include "bsp.h"
 
 float Sensors::tempearature;
 float Sensors::pressure;
@@ -16,9 +17,9 @@ void Sensors::updatePressure() {
 }
 
 void Sensors::updateLight() { 
-    float raw = Photoresistor_GetVoltage() * 1000;
-    // 3.3 ~ 0.0 Volt => 0 ~ 100 brightness 
-    brightness = (int)map(raw, 3.3 * 1000, 0, 0, 100); 
+    uint16_t raw = Photoresistor_GetRaw();
+    // 0xFFF ~ 0 => 0 ~ 100 brightness 
+    brightness = (int)map(raw, 0xFFF, 0, 0, 100); 
 }
 
 void Sensors::updateAll() {

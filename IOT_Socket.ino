@@ -1,18 +1,16 @@
 #include "bsp.h"
 #include "sensors.h"
-#include <CronAlarms.h>
 #include "infrared.h"
 #include "command.h"
 #include "mqtt_connection.h"
 #include "bluetooth_connection.h"
 #include "json_helper.h"
-#include <ESP32Ping.h>
 #include "tasks.h"
 #include "alarms.h"
 #include "misc.h"
 
 void setup() {
-    // Basic peripheral
+    // Peripheral and sensors
     Serial.begin(115200);
     LED_Setup();
     Beeper_Setup();
@@ -24,8 +22,12 @@ void setup() {
 
     // Restore settings
     Preferences_Init();
+    Preferences pref = Preferences_Get();
+    Infrared_RestorePreset(pref);
+    WiFi_RestoreSettings(pref);
+    TimeStamp_Restore(pref);
 
-    // Connections setup
+    // Connections
     WIFI_Setup();
     NTP_Setup();
     MQTT_Setup();
@@ -36,7 +38,7 @@ void setup() {
     MQTT_SetCommandHandler(Command_Run);
     Bluetooth_SetCommandHandler(Command_Run);
 
-    log_i("SYS OK");
+    log_i("System setup finished");
 }
 
 void OLED_UpdateInfo() {
@@ -161,8 +163,8 @@ void loop() {
     }
 
     TASK(1000 * 60 * 30) {
-        Preferences_UpdateTimeStamp();
+        TimeStamp_Update(Preferences_Get());
     }
 
-    Cron.delay(0);
+    alarm_check();
 }

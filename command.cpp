@@ -283,10 +283,10 @@ int32_t settings_cmd(int32_t argc, char** argv) {
     String flag = argv[1];
     if (flag.equalsIgnoreCase("wifi")) {
         CHECK_ARGC(3);
-        Preferences_UpdateWIFISetting(argv[2], argv[3]);
+        WiFi_UpdateSetting(argv[2], argv[3], Preferences_Get());
     } else if (flag.equalsIgnoreCase("time")) {
         CHECK_ARGC(2);
-        Preferences_UpdateTimeStamp(atol(argv[2]));
+        TimeStamp_Update(atol(argv[2]), Preferences_Get());
     } else {
         FLAG_NOT_MATCH();
     }

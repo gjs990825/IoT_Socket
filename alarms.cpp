@@ -57,3 +57,7 @@ int alarm_get_count() {
             count++;
     return count;
 }
+
+void alarm_check() {
+    Cron.delay(0);
+}

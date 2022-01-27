@@ -1,7 +1,7 @@
 #if !defined(_BLUETOOTH_CONNECTION_H_)
 #define _BLUETOOTH_CONNECTION_H_
 
-#include <Arduino.h>
+#include <WString.h>
 
 void Bluetooth_Setup();
 void Bluetooth_SetCommandHandler(bool (*handler)(String));

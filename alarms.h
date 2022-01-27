@@ -10,5 +10,6 @@ void alarm_add(const char *cron_string, void (*handler)(void), bool is_oneshot);
 void alarm_remove(void (*handler)(void));
 int alarm_get_count();
 void alarm_clear();
+void alarm_check();
 
 #endif // _ALARMS_H_
