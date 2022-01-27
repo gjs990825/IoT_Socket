@@ -16,7 +16,7 @@ void MQTT_SetCommandHandler(bool (*handler)(String)) {
 }
 
 bool MQTT_Connect() {
-    if (WIFI_IsConnected()) {
+    if (!WIFI_IsConnected()) {
         log_e("no connection, mqtt connect failed");
         return false;
     }

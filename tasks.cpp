@@ -15,6 +15,7 @@ void task_add(String cmd) {
 
 void task_clear() {
     tasks.clear();
+    log_i("tasks cleared");
 }
 
 void task_remove(String cmd) {

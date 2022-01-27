@@ -122,6 +122,29 @@ int32_t beeper_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+struct {
+    const char *const name;
+    void (*do_flip)(void);
+} flip_list[] = {
+    {"relay"    , Relay_Flip    },
+    {"beeper"   , Beeper_Flip   },
+    {"led"      , LED_Flip      },
+};
+
+// 0    1
+// flip peripheral
+int32_t flip_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String peripheral = argv[1];
+    for (auto &&f : flip_list) {
+        if (peripheral.equalsIgnoreCase(f.name)) {
+            f.do_flip();
+            return 0;
+        }
+    }
+    return -1;
+}
+
 // 0        1       2           3       4
 // alarm    add     cron_string action  is_oneshot 
 // alarm    remove  action
@@ -293,12 +316,32 @@ int32_t settings_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+// 0    1
 // mqtt send
 int32_t mqtt_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("send")) {
         MQTT_Send();
+    } else {
+        FLAG_NOT_MATCH();
+    }
+    return 0;
+}
+
+// 0        1
+// reset    default
+int32_t reset_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("default")) {
+        Relay_Set(false);
+        Beeper_Set(false);
+        LED_Set(false);
+        task_clear();
+        alarm_clear();
+        MotorControl_SetSpeed(0);
+        log_i("reset to default");
     } else {
         FLAG_NOT_MATCH();
     }
@@ -322,6 +365,8 @@ const struct {
     {"alarm",       alarm_cmd,      "Alarm setting"             },
     {"task",        task_cmd,       "Task setting"              },
     {"mqtt",        mqtt_cmd,       "MQTT send"                 },
+    {"flip",        flip_cmd,       "Flip something"            },
+    {"reset",       reset_cmd,      "Reset something"           },
 };
 
 bool Command_IsValid(String command) {
