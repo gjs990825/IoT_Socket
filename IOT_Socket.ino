@@ -73,10 +73,7 @@ void key1_long_press() {
 
 void key2_press() {
     log_i("key2 press");
-    // reset_to_default_state();
-
-    // TODO 
-    log_i("All reset!");
+    Command_Run("reset default");
 }
 
 void key2_long_press() {
@@ -134,6 +131,7 @@ void loop() {
     TASK(500) {
         Sensors::updateAll();
         task_check();
+        alarm_check();
         OLED_UpdateInfo();
         Infrared_CheckCapture();
     }
@@ -165,6 +163,4 @@ void loop() {
     TASK(1000 * 60 * 30) {
         TimeStamp_Update(Preferences_Get());
     }
-
-    alarm_check();
 }

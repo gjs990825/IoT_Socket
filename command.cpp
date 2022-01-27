@@ -158,10 +158,10 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
     }
     if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
-        alarm_remove(alarm_action_get(argv[2]));
+        alarm_remove(argv[2]);
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(4);
-        alarm_add(argv[2], alarm_action_get(argv[3]), atoi(argv[4]));
+        alarm_add(argv[2], argv[3], atoi(argv[4]));
     } else {
         FLAG_NOT_MATCH();
     }    

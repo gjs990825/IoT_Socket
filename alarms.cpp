@@ -1,52 +1,42 @@
 #include "alarms.h"
 #include "bsp.h"
 #include "infrared.h"
-#include <CronAlarms.h>
+#include "CronAlarms.h"
+#include <functional>
+#include "command.h"
 
-const struct {
-    const char *name;
-    alarm_action_func_t func;
-} alarm_actions[] = {
-    {"relay_on",    [](){ Relay_Set(true);	        }},
-    {"relay_off",   [](){ Relay_Set(false);	        }},
-    {"relay_flip",  [](){ Relay_Flip();		        }},
-    {"led_on",      [](){ LED_Set(true);	        }},
-    {"led_off",     [](){ LED_Set(false);	        }},
-    {"led_flip",    [](){ LED_Flip();		        }},
-    {"beeper_on",   [](){ Beeper_Set(true);	        }},
-    {"beeper_off",  [](){ Beeper_Set(false);	    }},
-    {"beeper_flip", [](){ Beeper_Flip();		    }},
-    {"ir_preset_0", [](){ Infrared_SendPreset(0);   }},
-    {"ir_preset_1", [](){ Infrared_SendPreset(1);   }},
-    {"ir_preset_2", [](){ Infrared_SendPreset(2);   }},
-    {"ir_preset_3", [](){ Infrared_SendPreset(3);   }},
-};
+typedef std::function<void(void)> alarm_handler_t;
 
-alarm_action_func_t alarm_action_get(String str) {
-    for (auto &&action : alarm_actions)
-        if (str.equalsIgnoreCase(action.name))
-            return action.func;
-    return NULL;
-}
+String alarm_name_list[dtNBR_ALARMS];
 
-void alarm_add(const char *cron_string, void (*handler)(void), bool is_oneshot) {
+bool alarm_add(const char *cron_string, String cmd, bool is_oneshot) {
+    alarm_handler_t handler = [cmd]() { Command_Run(cmd); };
     int id = Cron.create((char *)cron_string, handler, is_oneshot);
-    log_i("new alarm, id:%d", id);
+    if (id == dtINVALID_ALARM_ID) {
+        log_e("alarm create error");
+        return false;
+    }
+    String name = cmd.substring(0, cmd.indexOf(" "));
+    alarm_name_list[id] = name;
+    log_i("new alarm, id:%d, name:%s", id, name.c_str());
+    return true;
 }
 
-void alarm_remove(void (*handler)(void)) {
-    CronEventClass *alarms = Cron.getAlarms();
+void alarm_remove(String name) {
     for (int i = 0; i < dtNBR_ALARMS; i++) {
-        if (alarms[i].onTickHandler == handler) {
-            alarms[i].isEnabled = false;
-            log_i("alarm removed, id:%d", i);
+        if (alarm_name_list[i].equalsIgnoreCase(name)) {
+            Cron.free(i);
+            alarm_name_list[i] = "";
+            log_i("alarm %d:%s removed", i, name.c_str());
         }
     }
 }
 
 void alarm_clear() {
-    for (int i = 0; i < dtNBR_ALARMS; i++)
+    for (int i = 0; i < dtNBR_ALARMS; i++) {
         Cron.free(i);
+        alarm_name_list[i] = "";
+    }
     log_i("alarms cleared");
 }
 
@@ -59,5 +49,7 @@ int alarm_get_count() {
 }
 
 void alarm_check() {
+    // Command_OutputControl(false);
     Cron.delay(0);
+    // Command_OutputControl(true);
 }

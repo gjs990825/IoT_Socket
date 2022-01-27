@@ -2,12 +2,10 @@
 #define _ALARMS_H_
 
 #include <WString.h>
+#include <functional>
 
-typedef void (*alarm_action_func_t)();
-
-alarm_action_func_t alarm_action_get(String str);
-void alarm_add(const char *cron_string, void (*handler)(void), bool is_oneshot);
-void alarm_remove(void (*handler)(void));
+bool alarm_add(const char *cron_string, String cmd, bool is_oneshot);
+void alarm_remove(String name);
 int alarm_get_count();
 void alarm_clear();
 void alarm_check();
