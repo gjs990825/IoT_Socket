@@ -4,6 +4,7 @@
 #include "sensors.h"
 #include "infrared.h"
 #include "tasks.h"
+#include "mqtt_connection.h"
 
 #define CHECK_ARGC(required_num)                    \
             do {                                    \
@@ -353,6 +354,18 @@ int32_t settings_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+// mqtt send
+int32_t mqtt_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("send")) {
+        MQTT_Send();
+    } else {
+        FLAG_NOT_MATCH();
+    }
+    return 0;
+}
+
 const struct {
     const char* cmd_name;
     lwshell_cmd_fn cmd_fn;
@@ -369,6 +382,7 @@ const struct {
     {"beeper",      beeper_cmd,     "Beeper control"            },
     {"alarm",       alarm_cmd,      "Alarm setting"             },
     {"task",        task_cmd,       "Task setting"              },
+    {"mqtt",        mqtt_cmd,       "MQTT send"                 },
 };
 
 bool Command_IsValid(String command) {

@@ -151,7 +151,9 @@ void loop() {
 
                 if (!Infrared_IsCapturing()) {
                     if (test_server_connection()) {
-                        MQTT_Send(buffer);
+                        if (millis() - MQTT_GetLastSend() > 1000) {
+                            MQTT_Send(buffer);
+                        }
                     } else {
                         log_e("Service down:%d, retry after %ds\n", 
                             get_access_fail_count(),

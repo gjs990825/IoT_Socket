@@ -5,6 +5,7 @@
 #include "bsp.h"
 #include "sensors.h"
 #include "json_helper.h"
+#include "command.h"
 
 WiFiClient net;
 MQTTClient client(MQTT_CLIENT_BUFFER_SIZE);
@@ -35,6 +36,7 @@ void mqtt_message_received(String &topic, String &payload) {
             log_i("command received:%s", payload.c_str());
             bool status = mqtt_command_handler(payload);
             MQTT_Ack(status);
+            CommandQueue_Add("mqtt send");
             if (!status) {
                 log_e("cmd:\"%s\" execute failed", payload.c_str());
             }
@@ -57,7 +59,16 @@ void MQTT_Check() {
     }
 }
 
+unsigned long mqtt_last_send = 0;
+
+unsigned long MQTT_GetLastSend() { return mqtt_last_send; }
+
+void MQTT_Send() {
+    MQTT_Send(parse_json_buffer());
+}
+
 void MQTT_Send(const char *payload) {
+    mqtt_last_send = millis()
     log_d("MQTT msg:%s", payload);
     if (!client.publish(MQTT_TOPIC_STATE, payload)) {
         log_e("MQTT msg send failed");

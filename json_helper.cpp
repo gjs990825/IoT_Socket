@@ -9,7 +9,7 @@ char json_buffer[JSON_BUFFER_SIZE];
 
 char *parse_json_buffer() {
     doc["sensor"]["temperature"] = Sensors::getTemperature();
-    doc["sensor"]["pressture"] = Sensors::getPressure();
+    doc["sensor"]["pressure"] = Sensors::getPressure();
     doc["sensor"]["brightness"] = Sensors::getBrightness();
     doc["peripheral"]["relay"] = Relay_Get();
     doc["peripheral"]["led"] = LED_Get();
