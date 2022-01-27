@@ -1,8 +1,11 @@
 #if !defined(_JSON_HELPER_H_)
 #define _JSON_HELPER_H_
 
-#include "conf.h"
+#include "ArduinoJson.h"
 
-char *parse_json_buffer();
+char *json_helper_parse_send();
+char *json_helper_serialize();
+
+extern DynamicJsonDocument jsonDoc;
 
 #endif // _JSON_HELPER_H_

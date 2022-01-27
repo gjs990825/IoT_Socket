@@ -3,7 +3,7 @@
 #include <IRremote.h>
 
 typedef struct {
-    uint8_t code[INFRARED_CODE_LENGTH];
+    uint8_t code[INFRARED_MAX_CODE_LENGTH];
     uint8_t len;
 } infrared_code_t;
 

@@ -1,13 +1,15 @@
 #include "bsp.h"
 #include "sensors.h"
-#include "interactions.h"
-#include "tasks.h"
 #include <CronAlarms.h>
 #include "infrared.h"
 #include "command.h"
 #include "mqtt_connection.h"
 #include "bluetooth_connection.h"
 #include "json_helper.h"
+#include <ESP32Ping.h>
+#include "tasks.h"
+#include "alarms.h"
+#include "misc.h"
 
 void setup() {
     // Basic peripheral
@@ -31,7 +33,7 @@ void setup() {
 
     // Command system
     Command_Init();
-    MQTT_SetCommandHandler(CommandQueue_Add);
+    MQTT_SetCommandHandler(Command_Run);
     Bluetooth_SetCommandHandler(Command_Run);
 
     log_i("SYS OK");
@@ -42,7 +44,7 @@ void OLED_UpdateInfo() {
     OLED.setCursor(0, 0);
     OLED.setTextSize(2);
     OLED.print(LocalTime_GetString());
-    OLED.printf("%s\n", get_server_state() ? "" : " !"); // offline indicator
+    OLED.printf("%s\n", is_server_available() ? "" : " !"); // offline indicator
     OLED.setTextSize(1);
     OLED.printf("\nTemperature:%.3f\n\n", Sensors::getTemperature());
     OLED.printf("Pressure:%.3f\n\n", Sensors::getPressure());
@@ -69,7 +71,9 @@ void key1_long_press() {
 
 void key2_press() {
     log_i("key2 press");
-    reset_to_default_state();
+    // reset_to_default_state();
+
+    // TODO 
     log_i("All reset!");
 }
 
@@ -85,15 +89,6 @@ void key2_long_press() {
 }
 
 void loop() {
-    TASK(200) {
-        Command_CheckSerial();
-        CommandQueue_Handle();
-        Infrared_CheckCapture();
-        if (!Infrared_IsCapturing()) {
-            MQTT_Check();
-        }
-    }
-
     TASK(10) {
         key_scan();
     }
@@ -128,19 +123,22 @@ void loop() {
         }
     }
 
-    TASK(450) {
-        Sensors::updateAll();
-        task_check();
-        _task_check();
+    TASK(100) {
+        MQTT_Check();
+        Command_CheckSerial();
+        CommandQueue_Handle();
     }
 
     TASK(500) {
+        Sensors::updateAll();
+        task_check();
         OLED_UpdateInfo();
+        Infrared_CheckCapture();
     }
         
-    TASK(1500) {
+    TASK(1200) {
         if (Bluetooth_IsConnected() || WIFI_IsConnected()) {
-            const char* buffer = parse_json_buffer();;
+            const char* buffer = json_helper_parse_send();;
             if (Bluetooth_IsConnected()) {
                 Bluetooth_Send(buffer);
             }
@@ -149,16 +147,14 @@ void loop() {
             if (get_retry_after() * 1000 + t < millis()) {
                 t = millis();
 
-                if (!Infrared_IsCapturing()) {
-                    if (test_server_connection()) {
-                        if (millis() - MQTT_GetLastSend() > 1000) {
-                            MQTT_Send(buffer);
-                        }
-                    } else {
-                        log_e("Service down:%d, retry after %ds\n", 
-                            get_access_fail_count(),
-                            get_retry_after());
+                if (test_server_connection()) {
+                    if (millis() - MQTT_GetLastSend() > 1000) {
+                        MQTT_Send(buffer);
                     }
+                } else {
+                    log_e("Service down:%d, retry after %ds\n", 
+                        get_access_fail_count(),
+                        get_retry_after());
                 }
             }
         }

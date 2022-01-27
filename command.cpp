@@ -3,8 +3,9 @@
 #include "lwshell.h"
 #include "sensors.h"
 #include "infrared.h"
-#include "tasks.h"
 #include "mqtt_connection.h"
+#include "alarms.h"
+#include "tasks.h"
 
 #define CHECK_ARGC(required_num)                    \
             do {                                    \
@@ -121,35 +122,6 @@ int32_t beeper_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-typedef void (*alarm_action_func_t)();
-
-const struct {
-    const char *name;
-    alarm_action_func_t func;
-} alarm_actions[] = {
-    {"relay_on",    [](){ Relay_Set(true);	        }},
-    {"relay_off",   [](){ Relay_Set(false);	        }},
-    {"relay_flip",  [](){ Relay_Flip();		        }},
-    {"led_on",      [](){ LED_Set(true);	        }},
-    {"led_off",     [](){ LED_Set(false);	        }},
-    {"led_flip",    [](){ LED_Flip();		        }},
-    {"beeper_on",   [](){ Beeper_Set(true);	        }},
-    {"beeper_off",  [](){ Beeper_Set(false);	    }},
-    {"beeper_flip", [](){ Beeper_Flip();		    }},
-    {"ir_preset_0", [](){ Infrared_SendPreset(0);   }},
-    {"ir_preset_1", [](){ Infrared_SendPreset(1);   }},
-    {"ir_preset_2", [](){ Infrared_SendPreset(2);   }},
-    {"ir_preset_3", [](){ Infrared_SendPreset(3);   }},
-};
-
-alarm_action_func_t alarm_action_get(const char *s) {
-    String str = s;
-    for (auto &&action : alarm_actions)
-        if (str.equalsIgnoreCase(action.name))
-            return action.func;
-    return NULL;
-}
-
 // 0        1       2           3       4
 // alarm    add     cron_string action  is_oneshot 
 // alarm    remove  action
@@ -173,39 +145,6 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-#include <vector>
-std::vector<String> _tasks;
-
-void _task_add(const char *cmd) {
-    String cmd_s = cmd;
-    cmd_s.trim();
-    _tasks.push_back(cmd_s);
-
-    // remove duplicate
-    std::sort(_tasks.begin(), _tasks.end());
-    _tasks.erase(std::unique(_tasks.begin(), _tasks.end()), _tasks.end());
-}
-
-void _task_clear() {
-    _tasks.clear();
-}
-
-void _task_remove(const char *cmd) {
-    _tasks.erase(std::remove_if(_tasks.begin(),
-                                _tasks.end(),
-                                [cmd](String s) -> bool {
-                                    return s.equalsIgnoreCase(cmd);
-                                }),
-                _tasks.end());
-}
-
-void _task_check() {
-    // Command_OutputControl(false);
-    for (auto &&task : _tasks)
-        Command_Run(task);
-    // Command_OutputControl(true);
-}
-
 // 0    1       2
 // task add     cmd
 // task remove  cmd
@@ -215,15 +154,15 @@ int32_t task_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("clear")) {
-        _task_clear();
+        task_clear();
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(2);
-        _task_add(argv[2]);
+        task_add(argv[2]);
     } else if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
-        _task_remove(argv[2]);
+        task_remove(argv[2]);
     } else if (flag.equalsIgnoreCase("check")) {
-        for (auto &&cmd : _tasks)
+        for (auto &&cmd : task_get())
             Serial.println(cmd);
     } else {
         FLAG_NOT_MATCH();

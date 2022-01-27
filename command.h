@@ -12,6 +12,4 @@ bool Command_Run(String cmd);
 bool CommandQueue_Add(String cmd);
 void CommandQueue_Handle();
 
-void _task_check();
-
 #endif // _COMMAND_H_

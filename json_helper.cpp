@@ -1,23 +1,26 @@
 #include "json_helper.h"
 #include "conf.h"
-#include "ArduinoJson.h"
 #include "bsp.h"
 #include "sensors.h"
 
-DynamicJsonDocument doc(ARDUINOJSON_BUFFER_SIZE);
+DynamicJsonDocument jsonDoc(ARDUINOJSON_BUFFER_SIZE);
 char json_buffer[JSON_BUFFER_SIZE];
 
-char *parse_json_buffer() {
-    doc["sensor"]["temperature"] = Sensors::getTemperature();
-    doc["sensor"]["pressure"] = Sensors::getPressure();
-    doc["sensor"]["brightness"] = Sensors::getBrightness();
-    doc["peripheral"]["relay"] = Relay_Get();
-    doc["peripheral"]["led"] = LED_Get();
-    doc["peripheral"]["beeper"] = Beeper_Get();
-    doc["peripheral"]["motor"] = MotorControl_GetSpeed();
-    doc["system"]["time"] = getUnixTime();
-    doc["system"]["temperature"] = temperatureRead();
-
-    serializeJson(doc, json_buffer, JSON_BUFFER_SIZE);
+char *json_helper_serialize() { 
+    serializeJson(jsonDoc, json_buffer, JSON_BUFFER_SIZE); 
     return json_buffer;
+}
+
+char *json_helper_parse_send() {
+    jsonDoc["sensor"]["temperature"] = Sensors::getTemperature();
+    jsonDoc["sensor"]["pressure"] = Sensors::getPressure();
+    jsonDoc["sensor"]["brightness"] = Sensors::getBrightness();
+    jsonDoc["peripheral"]["relay"] = Relay_Get();
+    jsonDoc["peripheral"]["led"] = LED_Get();
+    jsonDoc["peripheral"]["beeper"] = Beeper_Get();
+    jsonDoc["peripheral"]["motor"] = MotorControl_GetSpeed();
+    jsonDoc["system"]["time"] = getUnixTime();
+    jsonDoc["system"]["temperature"] = temperatureRead();
+
+    return json_helper_serialize();
 }

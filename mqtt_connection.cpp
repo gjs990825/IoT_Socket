@@ -36,13 +36,13 @@ void mqtt_message_received(String &topic, String &payload) {
             log_i("command received:%s", payload.c_str());
             bool status = mqtt_command_handler(payload);
             MQTT_Ack(status);
-            CommandQueue_Add("mqtt send");
+            MQTT_Send();
             if (!status) {
                 log_e("cmd:\"%s\" execute failed", payload.c_str());
             }
         }
     } else {
-        log_i("topic received :%s, msg:%s", topic.c_str(), payload.c_str());
+        log_w("unknown topic:%s, msg:%s", topic.c_str(), payload.c_str());
     }
 }
 
@@ -53,8 +53,7 @@ void MQTT_Setup() {
 }
 
 void MQTT_Check() {
-    client.loop();
-    if (!client.connected()) {
+    if (!client.loop()) {
         MQTT_Connect();
     }
 }
@@ -64,7 +63,7 @@ unsigned long mqtt_last_send = 0;
 unsigned long MQTT_GetLastSend() { return mqtt_last_send; }
 
 void MQTT_Send() {
-    MQTT_Send(parse_json_buffer());
+    MQTT_Send(json_helper_parse_send());
 }
 
 void MQTT_Send(const char *payload) {
@@ -75,9 +74,16 @@ void MQTT_Send(const char *payload) {
     }
 }
 
-void MQTT_Ack(bool status) {
-    log_i("MQTT ack:%d", status);
-    if (!client.publish(MQTT_TOPIC_ACK, status ? ACK_OK : ACK_FAIL)) {
+void MQTT_Ack(bool status, String msg) {
+    log_i("MQTT ack:%d with msg:%s", status, msg.c_str());
+    jsonDoc["acknowledgement"] = status ? ACK_OK : ACK_FAIL;
+    jsonDoc["message"] = msg;
+    
+    if (!client.publish(MQTT_TOPIC_ACK, json_helper_serialize())) {
         log_e("MQTT ack failed");
     }
+}
+
+void MQTT_Ack(bool status) {
+    MQTT_Ack(status, "");
 }
