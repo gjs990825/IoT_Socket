@@ -22,14 +22,17 @@ bool alarm_add(const char *cron_string, String cmd, bool is_oneshot) {
     return true;
 }
 
-void alarm_remove(String name) {
+bool alarm_remove(String name) {
+    bool ret = false;
     for (int i = 0; i < dtNBR_ALARMS; i++) {
         if (alarm_name_list[i].equalsIgnoreCase(name)) {
+            ret = true;
             Cron.free(i);
             alarm_name_list[i].clear();
             log_i("alarm %d:%s removed", i, name.c_str());
         }
     }
+    return ret;
 }
 
 void alarm_clear() {

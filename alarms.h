@@ -5,7 +5,7 @@
 #include <functional>
 
 bool alarm_add(const char *cron_string, String cmd, bool is_oneshot);
-void alarm_remove(String name);
+bool alarm_remove(String name);
 int alarm_get_count();
 void alarm_clear();
 void alarm_check();

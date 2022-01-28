@@ -13,13 +13,24 @@ typedef enum {
     MSG_NONE,
     MSG_ARGC_ERR, 
     MSG_FLAG_NOT_MATCH,
-    MSG_OPERATION_SUCCEEDED,
-    MSG_OPERATION_FAILED,
+    MSG_OPERATION_SUCCESS,
+    MSG_OPERATION_FAIL,
     MSG_INVALID_INPUT,
     MSG_INVALID_ACTION,
     MSG_INVALID_CONDITION,
     MSG_RESET_SUCCESS,
     MSG_COMMAND_DOES_NOT_EXIST,
+    MSG_INFRARED_CAPTURE_START,
+    MSG_INFRARED_CAPTURE_SUCCESS,
+    MSG_INFRARED_CAPTURE_FAIL,
+    MSG_TASK_ADD_SUCCESS,
+    MSG_TASK_ADD_FAIL,
+    MSG_TASK_REMOVE_SUCCESS,
+    MSG_TASK_REMOVE_FAIL,
+    MSG_ALARM_ADD_SUCCESS,
+    MSG_ALARM_ADD_FAIL,
+    MSG_ALARM_REMOVE_SUCCESS,
+    MSG_ALARM_REMOVE_FAIL,
 } msg_code_t;
 
 struct {
@@ -29,13 +40,24 @@ struct {
     {MSG_NONE,                      ""                          },
     {MSG_ARGC_ERR,                  "Argument number error"     },
     {MSG_FLAG_NOT_MATCH,            "Command flag not match"    },
-    {MSG_OPERATION_SUCCEEDED,       "Operation succeeded"       },
-    {MSG_OPERATION_FAILED,          "Operation failed"          },
+    {MSG_OPERATION_SUCCESS,         "Operation success"         },
+    {MSG_OPERATION_FAIL,            "Operation fail"            },
     {MSG_INVALID_INPUT,             "Invalid input"             },
     {MSG_INVALID_ACTION,            "Invalid action"            },
     {MSG_INVALID_CONDITION,         "Invalid condition"         },
     {MSG_RESET_SUCCESS,             "Reset Success"             },
-    {MSG_COMMAND_DOES_NOT_EXIST,    "Command doesn't exist"     },
+    {MSG_COMMAND_DOES_NOT_EXIST,    "Command does not exist"    },
+    {MSG_INFRARED_CAPTURE_START,    "Infrared capture start"    },
+    {MSG_INFRARED_CAPTURE_SUCCESS,  "Infrared capture success"  },
+    {MSG_INFRARED_CAPTURE_FAIL,     "Infrared capture fail"     },
+    {MSG_TASK_ADD_SUCCESS,          "Task add success"          },
+    {MSG_TASK_ADD_FAIL,             "Task add fail"             },
+    {MSG_TASK_REMOVE_SUCCESS,       "Task remove success"       },
+    {MSG_TASK_REMOVE_FAIL,          "Task remove fail"          },
+    {MSG_ALARM_ADD_SUCCESS,         "Alarm add success"         },
+    {MSG_ALARM_ADD_FAIL,            "Alarm add fail"            },
+    {MSG_ALARM_REMOVE_SUCCESS,      "Alarm remove success"      },
+    {MSG_ALARM_REMOVE_FAIL,         "Alarm remove fail"         },
 };
 
 const char *const get_message_text(msg_code_t id) {
@@ -104,9 +126,13 @@ int32_t infrared_cmd(int32_t argc, char** argv) {
         if (flag.equalsIgnoreCase("start")) {
             CHECK_ARGC(3);
             Infrared_StartCapture(atoi(argv[3]));
+            Command_SetMessage(MSG_INFRARED_CAPTURE_START);
         } else if (flag.equalsIgnoreCase("end")) {
             if (Infrared_EndCapture()) {
                 Infrared_StorePreset();
+                Command_SetMessage(MSG_INFRARED_CAPTURE_SUCCESS);
+            } else {
+                Command_SetMessage(MSG_INFRARED_CAPTURE_FAIL);
             }
         } else {
             FLAG_NOT_MATCH();
@@ -222,13 +248,16 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
     if (flag.equalsIgnoreCase("clear")) {
         CHECK_ARGC(1);
         alarm_clear();
+        Command_SetMessage(MSG_ALARM_REMOVE_SUCCESS);
     }
     if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
-        alarm_remove(argv[2]);
+        bool ret = alarm_remove(argv[2]);
+        Command_SetMessage(ret ? MSG_ALARM_REMOVE_SUCCESS : MSG_ALARM_REMOVE_FAIL);
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(4);
-        alarm_add(argv[2], argv[3], atoi(argv[4]));
+        bool ret = alarm_add(argv[2], argv[3], atoi(argv[4]));
+        Command_SetMessage(ret ? MSG_ALARM_ADD_SUCCESS : MSG_ALARM_ADD_FAIL);
     } else {
         FLAG_NOT_MATCH();
     }    
@@ -245,12 +274,15 @@ int32_t task_cmd(int32_t argc, char** argv) {
     String flag = argv[1];
     if (flag.equalsIgnoreCase("clear")) {
         task_clear();
+        Command_SetMessage(MSG_TASK_REMOVE_SUCCESS);
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(2);
         task_add(argv[2]);
+        Command_SetMessage(MSG_TASK_ADD_SUCCESS);
     } else if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
         task_remove(argv[2]);
+        Command_SetMessage(MSG_TASK_REMOVE_SUCCESS);
     } else if (flag.equalsIgnoreCase("check")) {
         for (auto &&cmd : task_get())
             Serial.println(cmd);
