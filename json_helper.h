@@ -4,8 +4,6 @@
 #include "ArduinoJson.h"
 
 char *json_helper_parse_send();
-char *json_helper_serialize();
-
-extern DynamicJsonDocument jsonDoc;
+char *json_helper_parse_ack(bool status, String msg);
 
 #endif // _JSON_HELPER_H_

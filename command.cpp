@@ -6,16 +6,44 @@
 #include "mqtt_connection.h"
 #include "alarms.h"
 #include "tasks.h"
+#include "json_helper.h"
 
-#define CHECK_ARGC(required_num)                    \
-            do {                                    \
-                if (argc < required_num + 1) {      \
-                    log_e("arg num err:%d", argc);  \
-                    return -1;                      \
-                }                                   \
+String command_msg;
+
+const char *const MSG_ARGC_ERR = "[0] Argument number error";
+const char *const MSG_FLAG_NOT_MATCH = "[1] Command flag not match";
+const char *const MSG_OPERATION_FAILED = "[3] Operation failed";
+const char *const MSG_INVALID_INPUT = "[4] Illegal input";
+
+void Command_SetMessage(const char *msg) {
+    command_msg = msg;
+}
+
+void Command_ClearMeaagae() {
+    command_msg.clear();
+}
+
+String Command_GetMessage() {
+    String msg = command_msg;
+    Command_ClearMeaagae();
+    return msg;
+}
+
+#define CHECK_ARGC(required_num)                        \
+            do {                                        \
+                if (argc < required_num + 1) {          \
+                    log_e("arg num err:%d", argc);      \
+                    Command_SetMessage(MSG_ARGC_ERR);   \
+                    return -1;                          \
+                }                                       \
             } while(0) 
 
-#define FLAG_NOT_MATCH() do { log_e("flag not match"); } while(0)
+#define FLAG_NOT_MATCH()                                \
+            do {                                        \
+                log_e("flag not match");                \
+                Command_SetMessage(MSG_FLAG_NOT_MATCH); \
+                return -1;                              \
+            } while(0)
 
 // 0        1       2           3
 // infrared send    preset_id
@@ -237,11 +265,13 @@ int32_t handler_cmd(int32_t argc, char** argv) {
 
     if (!Command_IsValid(action)) {
         log_e("invalid action:%s", action.c_str());
+        Command_SetMessage("Invalid action");
         return -1;
     }
     
     if (condition == NULL) {
         log_e("invalid condition:%s", argv[1]);
+        Command_SetMessage("Invalid condition");
         return -1;
     }
 
@@ -342,6 +372,7 @@ int32_t reset_cmd(int32_t argc, char** argv) {
         alarm_clear();
         MotorControl_SetSpeed(0);
         log_i("reset to default");
+        Command_SetMessage("Reset success");
     } else {
         FLAG_NOT_MATCH();
     }
@@ -411,7 +442,11 @@ void Command_CheckSerial() {
             message[message_pos++] = inByte;
         } else {
             message[message_pos] = '\0';
-            lwshell_input(message, strlen(message));
+            
+            bool res = Command_Run(message);
+            char *json = json_helper_parse_ack(res, Command_GetMessage());
+            Serial.printf("Ack:%s\n", json);
+
             message_pos = 0;
         }
     }
@@ -419,6 +454,7 @@ void Command_CheckSerial() {
 
 bool Command_Run(String cmd) {
     cmd += '\n';
+    Command_ClearMeaagae();
     return lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK;
 }
 

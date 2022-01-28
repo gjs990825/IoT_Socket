@@ -73,8 +73,8 @@ void setup() {
 
     // Command system
     Command_Init();
-    MQTT_SetCommandHandler(Command_Run);
-    Bluetooth_SetCommandHandler(Command_Run);
+    MQTT_SetCommandTools(Command_Run, Command_GetMessage);
+    Bluetooth_SetCommandTools(Command_Run, Command_GetMessage);
 
     log_i("System setup finished");
 }
@@ -128,7 +128,7 @@ void loop() {
                         MQTT_Send(buffer);
                     }
                 } else {
-                    log_e("Service down:%d, retry after %ds\n", 
+                    log_w("Service down:%d, retry after %ds\n", 
                         get_access_fail_count(),
                         get_retry_after());
                 }

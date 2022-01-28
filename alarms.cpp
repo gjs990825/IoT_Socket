@@ -26,7 +26,7 @@ void alarm_remove(String name) {
     for (int i = 0; i < dtNBR_ALARMS; i++) {
         if (alarm_name_list[i].equalsIgnoreCase(name)) {
             Cron.free(i);
-            alarm_name_list[i] = "";
+            alarm_name_list[i].clear();
             log_i("alarm %d:%s removed", i, name.c_str());
         }
     }
@@ -35,7 +35,7 @@ void alarm_remove(String name) {
 void alarm_clear() {
     for (int i = 0; i < dtNBR_ALARMS; i++) {
         Cron.free(i);
-        alarm_name_list[i] = "";
+        alarm_name_list[i].clear();
     }
     log_i("alarms cleared");
 }

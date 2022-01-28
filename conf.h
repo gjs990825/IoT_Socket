@@ -55,6 +55,7 @@ static long timeStamp = 1609430400; // Fri Jan 01 2021 00:00:00 GMT+0800 (China 
 
 // Json helper
 #define JSON_BUFFER_SIZE 512
-#define ARDUINOJSON_BUFFER_SIZE 1024
+#define ARDUINOJSON_SEND_BUFFER_SIZE 512
+#define ARDUINOJSON_ACK_BUFFER_SIZE 128
 
 #endif // _CONF_H_
