@@ -73,8 +73,8 @@ void setup() {
 
     // Command system
     Command_Init();
-    MQTT_SetCommandTools(Command_Run, Command_GetMessage);
-    Bluetooth_SetCommandTools(Command_Run, Command_GetMessage);
+    MQTT_SetCommandTools(Command_Run, Command_GetMessageCode);
+    Bluetooth_SetCommandTools(Command_Run, Command_GetMessageCode);
 
     log_i("System setup finished");
 }

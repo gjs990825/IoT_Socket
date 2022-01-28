@@ -26,10 +26,10 @@ char *json_helper_parse_send() {
     return json_helper_serialize(jsonDocSend);
 }
 
-char *json_helper_parse_ack(bool status, String msg) {
+char *json_helper_parse_ack(bool status, int msg) {
     jsonDocAck.clear();
     jsonDocAck["acknowledgement"] = status ? ACK_OK : ACK_FAIL;
-    jsonDocAck["message"] = msg;
+    jsonDocAck["message_code"] = msg;
 
     return json_helper_serialize(jsonDocAck);
 }

@@ -7,11 +7,11 @@
 BluetoothSerial SerialBT;
 
 bool (*bluetooth_command_handler)(String cmd) = NULL;
-String (*bluetooth_message_getter)(void);
+int (*bluetooth_message_code_getter)(void);
 
-void Bluetooth_SetCommandTools(bool (*handler)(String), String (*msg_getter)(void)) {
+void Bluetooth_SetCommandTools(bool (*handler)(String), int (*msg_code_getter)(void)) {
     bluetooth_command_handler = handler;
-    bluetooth_message_getter = msg_getter;
+    bluetooth_message_code_getter = msg_code_getter;
 }
 
 void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
@@ -22,8 +22,8 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
 
             bool status = bluetooth_command_handler(btString);
 
-            if (bluetooth_message_getter != NULL) {
-                Bluetooth_Ack(status, bluetooth_message_getter());
+            if (bluetooth_message_code_getter != NULL) {
+                Bluetooth_Ack(status, bluetooth_message_code_getter());
             } else {
                 Bluetooth_Ack(status);
             }
@@ -47,9 +47,9 @@ void Bluetooth_Send(const char *payload) {
     SerialBT.println(payload);
 }
 
-void Bluetooth_Ack(bool status, String msg) {
-    log_i("Bluetooth ack:%d with msg:%s", status, msg.c_str());
-    char *json = json_helper_parse_ack(status, msg);
+void Bluetooth_Ack(bool status, int msg_code) {
+    log_i("Bluetooth ack:%d with msg code:%d", status, msg_code);
+    char *json = json_helper_parse_ack(status, msg_code);
     SerialBT.println(json);
 }
 

@@ -13,6 +13,6 @@ bool CommandQueue_Add(String cmd);
 void CommandQueue_Handle();
 
 void Command_ClearMeaagae();
-String Command_GetMessage();
+int Command_GetMessageCode();
 
 #endif // _COMMAND_H_

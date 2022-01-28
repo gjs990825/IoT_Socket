@@ -8,25 +8,64 @@
 #include "tasks.h"
 #include "json_helper.h"
 
-String command_msg;
 
-const char *const MSG_ARGC_ERR = "[0] Argument number error";
-const char *const MSG_FLAG_NOT_MATCH = "[1] Command flag not match";
-const char *const MSG_OPERATION_FAILED = "[3] Operation failed";
-const char *const MSG_INVALID_INPUT = "[4] Illegal input";
+typedef enum {
+    MSG_NONE,
+    MSG_ARGC_ERR, 
+    MSG_FLAG_NOT_MATCH,
+    MSG_OPERATION_SUCCEEDED,
+    MSG_OPERATION_FAILED,
+    MSG_INVALID_INPUT,
+    MSG_INVALID_ACTION,
+    MSG_INVALID_CONDITION,
+    MSG_RESET_SUCCESS,
+    MSG_COMMAND_DOES_NOT_EXIST,
+} msg_code_t;
 
-void Command_SetMessage(const char *msg) {
-    command_msg = msg;
+struct {
+    msg_code_t id;
+    const char *const msg;
+} code_list[] = {
+    {MSG_NONE,                      ""                          },
+    {MSG_ARGC_ERR,                  "Argument number error"     },
+    {MSG_FLAG_NOT_MATCH,            "Command flag not match"    },
+    {MSG_OPERATION_SUCCEEDED,       "Operation succeeded"       },
+    {MSG_OPERATION_FAILED,          "Operation failed"          },
+    {MSG_INVALID_INPUT,             "Invalid input"             },
+    {MSG_INVALID_ACTION,            "Invalid action"            },
+    {MSG_INVALID_CONDITION,         "Invalid condition"         },
+    {MSG_RESET_SUCCESS,             "Reset Success"             },
+    {MSG_COMMAND_DOES_NOT_EXIST,    "Command doesn't exist"     },
+};
+
+const char *const get_message_text(msg_code_t id) {
+    for (auto &&i : code_list) {
+        if (i.id == id) {
+            return i.msg;
+        }
+    }
+    return "";
+}
+
+msg_code_t command_msg;
+void Command_SetMessage(msg_code_t id) {
+    command_msg = id;
 }
 
 void Command_ClearMeaagae() {
-    command_msg.clear();
+    command_msg = MSG_NONE;
 }
 
-String Command_GetMessage() {
-    String msg = command_msg;
+// String Command_GetMessage() {
+//     msg_code_t id = command_msg;
+//     Command_ClearMeaagae();
+//     return get_message_text(id);
+// }
+
+int Command_GetMessageCode() {
+    msg_code_t id = command_msg;
     Command_ClearMeaagae();
-    return msg;
+    return (int)id;
 }
 
 #define CHECK_ARGC(required_num)                        \
@@ -170,7 +209,7 @@ int32_t flip_cmd(int32_t argc, char** argv) {
             return 0;
         }
     }
-    return -1;
+    FLAG_NOT_MATCH();
 }
 
 // 0        1       2           3       4
@@ -265,13 +304,13 @@ int32_t handler_cmd(int32_t argc, char** argv) {
 
     if (!Command_IsValid(action)) {
         log_e("invalid action:%s", action.c_str());
-        Command_SetMessage("Invalid action");
+        Command_SetMessage(MSG_INVALID_ACTION);
         return -1;
     }
     
     if (condition == NULL) {
         log_e("invalid condition:%s", argv[1]);
-        Command_SetMessage("Invalid condition");
+        Command_SetMessage(MSG_INVALID_CONDITION);
         return -1;
     }
 
@@ -372,7 +411,7 @@ int32_t reset_cmd(int32_t argc, char** argv) {
         alarm_clear();
         MotorControl_SetSpeed(0);
         log_i("reset to default");
-        Command_SetMessage("Reset success");
+        Command_SetMessage(MSG_RESET_SUCCESS);
     } else {
         FLAG_NOT_MATCH();
     }
@@ -444,7 +483,7 @@ void Command_CheckSerial() {
             message[message_pos] = '\0';
             
             bool res = Command_Run(message);
-            char *json = json_helper_parse_ack(res, Command_GetMessage());
+            char *json = json_helper_parse_ack(res, Command_GetMessageCode());
             Serial.printf("Ack:%s\n", json);
 
             message_pos = 0;

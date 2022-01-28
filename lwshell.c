@@ -89,7 +89,7 @@ static lwshell_t shell;
  * \brief           Parse input string
  * \param[in]       lw: LwSHELL instance
  */
-static void
+static lwshellr_t
 prv_parse_input(lwshell_t* lw) {
     size_t s_len;
     char* str;
@@ -99,7 +99,7 @@ prv_parse_input(lwshell_t* lw) {
     /* Check string length and compare */
     s_len = strlen(lw->buff);
     if (lw->buff_ptr != s_len) {
-        return;
+        return lwshellERR;
     }
 
     /* Must be more than `1` character since we have to include end of line */
@@ -178,8 +178,9 @@ prv_parse_input(lwshell_t* lw) {
                     /* Here we can print version */
                     LW_OUTPUT(lw, c->desc);
                     LW_OUTPUT(lw, "\r\n");
+                    return lwshellOK;
                 } else {
-                    c->fn(lw->argc, lw->argv);
+                    return c->fn(lw->argc, lw->argv);
                 }
 #if LWSHELL_CFG_USE_ENABLE_LIST_CMD
             } else if (strncmp(lw->argv[0], "listcmd", 7) == 0) {
@@ -190,12 +191,15 @@ prv_parse_input(lwshell_t* lw) {
                     LW_OUTPUT(lw, cmds[i].desc);
                     LW_OUTPUT(lw, "\r\n");
                 }
+                return lwshellOK;
 #endif /* LWSHELL_CFG_USE_ENABLE_LIST_CMD */
             } else {
                 LW_OUTPUT(lw, "Unknown command\r\n");
+                return lwshellERR;
             }
         }
     }
+    return lwshellERR;
 }
 
 /**
@@ -267,19 +271,23 @@ lwshell_input(const void* in_data, size_t len) {
         return lwshellERRPAR;
     }
 
+    lwshellr_t ret = lwshellERR;
+
     /* Process all bytes */
     for (size_t i = 0; i < len; ++i) {
         switch (d[i]) {
             case LWSHELL_ASCII_CR: {
                 LW_OUTPUT(lw, "\r");
-                prv_parse_input(lw);
+                ret = prv_parse_input(lw);
                 LWSHELL_RESET_BUFF(lw);
+                return ret;
                 break;
             }
             case LWSHELL_ASCII_LF: {
                 LW_OUTPUT(lw, "\n");
-                prv_parse_input(lw);
+                ret = prv_parse_input(lw);
                 LWSHELL_RESET_BUFF(lw);
+                return ret;
                 break;
             }
             case LWSHELL_ASCII_BACKSPACE: {
@@ -300,5 +308,5 @@ lwshell_input(const void* in_data, size_t len) {
             }
         }
     }
-    return lwshellOK;
+    return ret;
 }

@@ -10,11 +10,11 @@ WiFiClient net;
 MQTTClient client(MQTT_CLIENT_BUFFER_SIZE);
 
 bool (*mqtt_command_handler)(String cmd) = NULL;
-String (*mqtt_message_getter)(void) = NULL;
+int (*mqtt_message_code_getter)(void) = NULL;
 
-void MQTT_SetCommandTools(bool (*handler)(String), String (*msg_getter)(void)) {
+void MQTT_SetCommandTools(bool (*handler)(String), int (*msg_code_getter)(void)) {
     mqtt_command_handler = handler;
-    mqtt_message_getter = msg_getter;
+    mqtt_message_code_getter = msg_code_getter;
 }
 
 bool MQTT_Connect() {
@@ -37,8 +37,8 @@ void mqtt_message_received(String &topic, String &payload) {
             log_i("command received:%s", payload.c_str());
             bool status = mqtt_command_handler(payload);
             
-            if (mqtt_message_getter != NULL) {
-                MQTT_Ack(status, mqtt_message_getter());
+            if (mqtt_message_code_getter != NULL) {
+                MQTT_Ack(status, mqtt_message_code_getter());
             } else {
                 MQTT_Ack(status);
             }
@@ -81,9 +81,9 @@ void MQTT_Send(const char *payload) {
     }
 }
 
-void MQTT_Ack(bool status, String msg) {
-    char *json = json_helper_parse_ack(status, msg);
-    log_i("MQTT ack:%d with msg:%s", status, msg.c_str());
+void MQTT_Ack(bool status, int msg_code) {
+    char *json = json_helper_parse_ack(status, msg_code);
+    log_i("MQTT ack:%d with msg code:%d", status, msg_code);
     if (!client.publish(MQTT_TOPIC_ACK, json)) {
         log_e("MQTT ack failed");
     }

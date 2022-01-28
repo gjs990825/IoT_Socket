@@ -62,6 +62,7 @@ typedef enum {
     lwshellOK = 0x00,                           /*!< Everything OK */
     lwshellERRPAR,                              /*!< Parameter error */
     lwshellERRMEM,                              /*!< Memory error */
+    lwshellERR,                                 // general error
 } lwshellr_t;
 
 /* Forward declaration */
