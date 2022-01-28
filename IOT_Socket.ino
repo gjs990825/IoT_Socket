@@ -9,16 +9,54 @@
 #include "alarms.h"
 #include "misc.h"
 
+
+void key1_press() {
+    log_i("key1 press");
+    Relay_Flip();
+}
+
+void key1_long_press() {
+    log_i("key1 long press");
+    // if (!Infrared_IsCapturing()) {
+    //     Infrared_StartCapture(0);
+    // } else {
+    //     if (Infrared_EndCapture()) {
+    //         Infrared_StorePreset(Preferences_Get());
+    //     }
+    // }
+}
+
+void key2_press() {
+    log_i("key2 press");
+    Command_Run("reset default");
+}
+
+void key2_long_press() {
+    log_i("key2 long press");
+    // if (!Infrared_IsCapturing()) {
+    //     Infrared_StartCapture(1);
+    // } else {
+    //     if (Infrared_EndCapture()) {
+    //         Infrared_StorePreset(Preferences_Get());
+    //     } 
+    // }
+}
+
 void setup() {
     // Peripheral and sensors
     Serial.begin(115200);
     LED_Setup();
     Beeper_Setup();
-    KEY_Setup();
     Relay_Setup();
     OLED_Setup();
     BMP280_Setup();
     MotorControl_Setup();
+    KEY_Setup();
+
+    key_set_handler(key1_press,
+                    key1_long_press,
+                    key2_press,
+                    key2_long_press);
 
     // Restore settings
     Preferences_Init();
@@ -55,71 +93,9 @@ void OLED_UpdateInfo() {
     OLED.display();
 }
 
-void key1_press() {
-    log_i("key1 press");
-    Relay_Flip();
-}
-
-void key1_long_press() {
-    if (!Infrared_IsCapturing()) {
-        Infrared_StartCapture(0);
-    } else {
-        if (Infrared_EndCapture()) {
-            Infrared_StorePreset(Preferences_Get());
-        }
-    }
-    log_i("key1 long press");
-}
-
-void key2_press() {
-    log_i("key2 press");
-    Command_Run("reset default");
-}
-
-void key2_long_press() {
-    log_i("key2 long press");
-    if (!Infrared_IsCapturing()) {
-        Infrared_StartCapture(1);
-    } else {
-        if (Infrared_EndCapture()) {
-            Infrared_StorePreset(Preferences_Get());
-        } 
-    }
-}
-
 void loop() {
     TASK(10) {
-        key_scan();
-    }
-
-    TASK(50) {
-        if (key_is(KEY1, KEY_PRESS)) {
-            while (key_is(KEY1, KEY_PRESS)) {
-                key_scan();
-            }
-            if (key_is(KEY1, KEY_LONG_PRESS)) {
-                key1_long_press();
-                while (key_is(KEY1, KEY_LONG_PRESS)) {
-                    key_scan();
-                }
-            } else {
-                key1_press();
-            }
-        }
-
-        if (key_is(KEY2, KEY_PRESS)) {
-            while (key_is(KEY2, KEY_PRESS)) {
-                key_scan();
-            }
-            if (key_is(KEY2, KEY_LONG_PRESS)) {
-                key2_long_press();
-                while (key_is(KEY2, KEY_LONG_PRESS)) {
-                    key_scan();
-                }
-            } else {
-                key2_press();
-            }
-        }
+        key_check();
     }
 
     TASK(100) {

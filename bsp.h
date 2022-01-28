@@ -47,12 +47,19 @@ typedef enum {
     KEY_LONG_PRESS,
 } key_status_t;
 
+typedef void(*key_handler)(void);
+
 void KEY_Setup();
 void key_scan();
 bool key_is(int id, key_status_t sta);
 bool key_is_not(int id, key_status_t sta);
 int key_get_key();
 key_status_t key_get_status();
+void key_set_handler(key_handler k1,
+                    key_handler k1_long,
+                    key_handler k2,
+                    key_handler k2_long);
+void key_check();
 
 void LED_Setup();
 void LED_Set(uint8_t val);

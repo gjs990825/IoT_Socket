@@ -1,6 +1,6 @@
 #include "tasks.h"
 #include "command.h"
-#include <algorithm>
+#include <Arduino.h>
 
 std::vector<String> tasks;
 

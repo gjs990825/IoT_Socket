@@ -1,7 +1,7 @@
 #if !defined(_CONF_H_)
 #define _CONF_H_
 
-#include <Arduino.h>
+#include <WString.h>
 #include <IPAddress.h>
 
 #define PREFERENCES_DEBUG 0

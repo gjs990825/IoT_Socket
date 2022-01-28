@@ -78,6 +78,56 @@ void key_scan() {
 	}
 }
 
+key_handler k1_press = NULL;
+key_handler k2_press = NULL;
+key_handler k1_long_press = NULL;
+key_handler k2_long_press = NULL;
+
+void key_set_handler(key_handler k1,
+                    key_handler k1_long,
+                    key_handler k2,
+                    key_handler k2_long) {
+    k1_press = k1;
+    k1_long_press = k1_long;
+    k2_press = k2;
+    k2_long_press = k2_long;
+}
+
+#define CHECK_KEY(PIN, PRESS_HANDLER, LONG_PRESS_HANDLER) \
+    do {                                                  \
+        if (key_is(PIN, KEY_PRESS)) {                     \
+            while (key_is(PIN, KEY_PRESS)) {              \
+                key_scan();                               \
+            }                                             \
+            if (key_is(PIN, KEY_LONG_PRESS)) {            \
+                if (LONG_PRESS_HANDLER) {                 \
+                    LONG_PRESS_HANDLER();                 \
+                }                                         \
+                while (key_is(PIN, KEY_LONG_PRESS)) {     \
+                    key_scan();                           \
+                }                                         \
+            } else {                                      \
+                if (PRESS_HANDLER) {                      \
+                    PRESS_HANDLER();                      \
+                }                                         \
+            }                                             \
+        }                                                 \
+    } while (0)
+
+void key_check() {
+    static uint8_t count;
+
+    // every 10ms
+    key_scan();
+    if (++count == 5) {
+        count = 0;
+
+        // every 50ms
+        CHECK_KEY(KEY1, k1_press, k1_long_press);
+        CHECK_KEY(KEY2, k2_press, k2_long_press);
+    }
+}
+
 bool relay_status = false;
 void Relay_Set(bool sta) {
     relay_status = sta;
