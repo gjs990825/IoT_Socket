@@ -177,7 +177,6 @@ int32_t run_cmd(int32_t argc, char** argv) {
         cmd += argv[i];
         cmd += ' ';
     }
-    cmd.trim();
     Serial.printf("cmd:\"%s\"\n", cmd.c_str());
     CommandQueue_Add(cmd);
     return 0;
@@ -246,11 +245,9 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("clear")) {
-        CHECK_ARGC(1);
         alarm_clear();
         Command_SetMessage(MSG_ALARM_REMOVE_SUCCESS);
-    }
-    if (flag.equalsIgnoreCase("remove")) {
+    } else if (flag.equalsIgnoreCase("remove")) {
         CHECK_ARGC(2);
         bool ret = alarm_remove(argv[2]);
         Command_SetMessage(ret ? MSG_ALARM_REMOVE_SUCCESS : MSG_ALARM_REMOVE_FAIL);
@@ -450,6 +447,19 @@ int32_t reset_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
+// 0    1+
+// echo ...
+int32_t echo_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String cmd;
+    for (int i = 1; i < argc - 1; i++) {
+            cmd += argv[i];
+            cmd += ' ';
+    }
+    Serial.println(cmd + argv[argc - 1]);
+    return 0;
+}
+
 const struct {
     const char* cmd_name;
     lwshell_cmd_fn cmd_fn;
@@ -469,6 +479,7 @@ const struct {
     {"mqtt",        mqtt_cmd,       "MQTT send"                 },
     {"flip",        flip_cmd,       "Flip something"            },
     {"reset",       reset_cmd,      "Reset something"           },
+    {"echo",        echo_cmd,       "Echo every input"          },
 };
 
 bool Command_IsValid(String command) {
@@ -523,10 +534,52 @@ void Command_CheckSerial() {
     }
 }
 
+#include <vector>
+
+bool Command_Run(std::vector<String> &cmd_list) {
+    bool ret = true;
+    int msg_code = MSG_NONE;
+    for (auto &&cmd : cmd_list) {
+        ret = ret && (lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK);
+        msg_code = max(msg_code, Command_GetMessageCode());
+    }
+    Command_SetMessage((msg_code_t)msg_code);
+    return ret;
+}
+
+String split(String data, char separator, int index) {
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i + 1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
 bool Command_Run(String cmd) {
-    cmd += '\n';
-    Command_ClearMeaagae();
-    return lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK;
+    cmd.trim();
+    int index = cmd.indexOf('\n');
+    if (index > 0) {
+        std::vector<String> cmd_list;
+        for (int i = 0; ; i++) {
+            String tmp = split(cmd, '\n', i);
+            if (tmp.isEmpty()) {
+                break;
+            }
+            cmd_list.push_back(tmp + '\n');
+        }
+        return Command_Run(cmd_list);
+    } else {
+        Command_ClearMeaagae();
+        cmd += '\n';
+        return lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK;
+    }
 }
 
 #include <queue>
@@ -543,10 +596,19 @@ bool CommandQueue_Add(String cmd) {
     return true;
 }
 
+bool CommandQueue_Add(std::vector<String> &cmd_list) {
+    bool ret = true;
+    for (auto &&cmd : cmd_list) {
+        ret = ret && CommandQueue_Add(cmd);
+        Serial.printf("Multi:%s\n", cmd.c_str());
+    }
+    return ret;
+}
+
 void CommandQueue_Handle() {
     if (cmd_queue.empty()) 
         return;
-    while (!cmd_queue.empty()) {
+    if (!cmd_queue.empty()) {
         String cmd = cmd_queue.front();
         cmd_queue.pop();
         Command_Run(cmd);
