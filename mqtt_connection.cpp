@@ -74,7 +74,7 @@ void MQTT_Send() {
 }
 
 void MQTT_Send(const char *payload) {
-    mqtt_last_send = millis()
+    mqtt_last_send = millis();
     log_d("MQTT msg:%s", payload);
     if (!client.publish(MQTT_TOPIC_STATE, payload)) {
         log_e("MQTT msg send failed");
