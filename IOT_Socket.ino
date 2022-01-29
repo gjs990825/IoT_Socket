@@ -60,7 +60,7 @@ void setup() {
 
     // Restore settings
     Preferences_Init();
-    Preferences pref = Preferences_Get();
+    Preferences& pref = Preferences_Get();
     Infrared_RestorePreset(pref);
     WiFi_RestoreSettings(pref);
     TimeStamp_Restore(pref);

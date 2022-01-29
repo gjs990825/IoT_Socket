@@ -16,9 +16,8 @@ bool alarm_add(const char *cron_string, String cmd, bool is_oneshot) {
         log_e("alarm create error");
         return false;
     }
-    String name = cmd.substring(0, cmd.indexOf(" "));
-    alarm_name_list[id] = name;
-    log_i("new alarm, id:%d, name:%s", id, name.c_str());
+    alarm_name_list[id] = cmd;
+    log_i("new alarm, id:%d, cmd:%s", id, cmd.c_str());
     return true;
 }
 
