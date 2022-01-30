@@ -118,20 +118,8 @@ void loop() {
             if (Bluetooth_IsConnected()) {
                 Bluetooth_Send(buffer);
             }
-
-            static unsigned long t = 0;
-            if (get_retry_after() * 1000 + t < millis()) {
-                t = millis();
-
-                if (test_server_connection()) {
-                    if (millis() - MQTT_GetLastSend() > 1000) {
-                        MQTT_Send(buffer);
-                    }
-                } else {
-                    log_w("Service down:%d, retry after %ds\n", 
-                        get_access_fail_count(),
-                        get_retry_after());
-                }
+            if (WIFI_IsConnected()) {
+                MQTT_Send(buffer);
             }
         }
     }

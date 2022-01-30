@@ -52,6 +52,6 @@ int alarm_get_count() {
 
 void alarm_check() {
     // Command_OutputControl(false);
-    Cron.delay(0);
+    Cron.delay();
     // Command_OutputControl(true);
 }
