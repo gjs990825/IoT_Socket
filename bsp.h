@@ -19,7 +19,7 @@ static const uint8_t BMP280_SCL_PIN = 22,
 
 static const uint8_t OLED_CLK_PIN = 14,
                      OLED_MOSI_PIN = 13,
-                     OLED_RESET_PIN = 5,
+                     OLED_RESET_PIN = 17,
                      OLED_DC_PIN = 4,
                      OLED_CS_PIN = 15;
 
