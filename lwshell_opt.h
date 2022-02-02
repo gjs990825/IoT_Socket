@@ -76,7 +76,7 @@ extern "C" {
  * Number includes command name itself
  */
 #ifndef LWSHELL_CFG_MAX_CMD_ARGS
-#define LWSHELL_CFG_MAX_CMD_ARGS                8
+#define LWSHELL_CFG_MAX_CMD_ARGS                12
 #endif
 
 /**

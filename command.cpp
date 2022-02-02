@@ -390,11 +390,18 @@ int32_t task_handler_cmd(int32_t argc, char** argv) {
         result = condition_result != atoff(argv[4]);
     } else if (type.equalsIgnoreCase("linear")) {
         CHECK_ARGC(7);
-        result = (int)map_float(condition_result,
-                            atoff(argv[4]),
-                            atoff(argv[5]),
-                            atoff(argv[6]),
-                            atoff(argv[7]));
+        float inMin = atoff(argv[4]),
+            inMax = atoff(argv[5]),
+            outMin = atoff(argv[6]),
+            outMax = atoff(argv[7]);
+
+        result = (int)map_float(
+            constrain(condition_result, inMin, inMax),
+            inMin,
+            inMax,
+            outMin,
+            outMax
+        );
     } else if (type.equalsIgnoreCase("interval")) {
         CHECK_ARGC(5);
         float l = atoff(argv[4]), h = atoff(argv[5]);
@@ -458,7 +465,7 @@ int32_t task_cmd(int32_t argc, char** argv) {
             task += argv[i];
             task += ' ';
         }
-        
+
         log_i("task to be added:%s", task.c_str());
         bool ret = task_add(task);
         Command_SetMessage(ret ? MSG_TASK_ADD_SUCCESS : MSG_TASK_DUPLICATED);
