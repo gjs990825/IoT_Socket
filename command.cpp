@@ -90,6 +90,16 @@ int Command_GetMessageCode() {
     return (int)id;
 }
 
+int arg_2_int(String arg) {
+    if (arg.equalsIgnoreCase("true")) {
+        return 1;
+    } else if (arg.equalsIgnoreCase("false")) {
+        return 0;
+    } else {
+        return atoi(arg.c_str());
+    }
+}
+
 #define CHECK_ARGC(required_num)                        \
             do {                                        \
                 if (argc < required_num + 1) {          \
@@ -186,7 +196,7 @@ int32_t run_cmd(int32_t argc, char** argv) {
 // led  brightness
 int32_t led_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    LED_Set((uint8_t)atoi(argv[1]));
+    LED_Set((uint8_t)arg_2_int(argv[1]));
     return 0;
 }
 
@@ -202,7 +212,7 @@ int32_t motor_cmd(int32_t argc, char** argv) {
 // relay    sta
 int32_t relay_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Relay_Set(atoi(argv[1]));
+    Relay_Set(arg_2_int(argv[1]));
     return 0;
 }
 
@@ -210,7 +220,7 @@ int32_t relay_cmd(int32_t argc, char** argv) {
 // beeper   sta
 int32_t beeper_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Beeper_Set(atoi(argv[1]));
+    Beeper_Set(arg_2_int(argv[1]));
     return 0;
 }
 
@@ -254,6 +264,8 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(4);
         bool ret = alarm_add(argv[2], argv[3], atoi(argv[4]));
+        CHECK_ACTION(argv[3]);
+        bool ret = alarm_add(argv[2], argv[3], arg_2_int(argv[4]));
         Command_SetMessage(ret ? MSG_ALARM_ADD_SUCCESS : MSG_ALARM_ADD_FAIL);
     } else {
         FLAG_NOT_MATCH();

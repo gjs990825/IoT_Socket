@@ -18,6 +18,10 @@ void LED_Set(bool sta) {
     LED_Set((uint8_t)(sta ? 0xFF : 0x00));
 }
 
+bool LED_GetBool() {
+    return led_status != 0;
+}
+
 uint8_t LED_Get() {
     return led_status;
 }

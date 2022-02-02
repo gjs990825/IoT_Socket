@@ -65,6 +65,7 @@ void LED_Setup();
 void LED_Set(uint8_t val);
 void LED_Set(bool sta);
 uint8_t LED_Get();
+bool LED_GetBool();
 void LED_Flip();
 
 void Relay_Setup();
