@@ -84,7 +84,9 @@ void CronClass::disable(CronID_t ID)
 
 void CronClass::free(CronID_t ID)
 {
+  extern void alarm_remove_name(int i);
   if (isAllocated(ID)) {
+    alarm_remove_name(ID);
     memset(&(Alarm[ID].expr), 0, sizeof(Alarm[ID].expr));
     Alarm[ID].onTickHandler = NULL;
     Alarm[ID].nextTrigger = 0;

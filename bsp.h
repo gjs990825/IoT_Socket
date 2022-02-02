@@ -97,8 +97,8 @@ bool WiFi_UpdateSetting(String setting, Preferences &pref);
 bool WiFi_UpdateSetting(const char *_ssid, const char *_password, Preferences &pref);
 
 void TimeStamp_Restore(Preferences &pref);
-void TimeStamp_Update(long t, Preferences &pref);
-void TimeStamp_Update(Preferences &pref);
+bool TimeStamp_Update(long t, Preferences &pref);
+bool TimeStamp_Update(Preferences &pref);
 
 void NTP_Setup();
 int setUnixtime(time_t unixtime);

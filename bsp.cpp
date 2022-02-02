@@ -272,13 +272,15 @@ void TimeStamp_Restore(Preferences &pref) {
     log_i("time stamp restored:%ld", timeStamp);
 }
 
-void TimeStamp_Update(long t, Preferences &pref) {
+bool TimeStamp_Update(long t, Preferences &pref) {
     if (t > 1577836800) { // 2020.01.01
         setUnixtime(t);
         pref.putLong("pref_time_stamp", t);
         log_i("time preference updated");
+        return true;
     } else {
         log_e("time stamp error");
+        return false;
     }
 }
 
@@ -324,10 +326,10 @@ time_t getUnixTime() {
     return now;
 }
 
-void TimeStamp_Update(Preferences &pref) {
+bool TimeStamp_Update(Preferences &pref) {
     timeval epoch;
     gettimeofday(&epoch, 0);
-    TimeStamp_Update(epoch.tv_sec, pref);
+    return TimeStamp_Update(epoch.tv_sec, pref);
 }
 
 void NTP_Setup() {

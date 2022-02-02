@@ -25,42 +25,54 @@ typedef enum {
     MSG_INFRARED_CAPTURE_FAIL,
     MSG_TASK_ADD_SUCCESS,
     MSG_TASK_ADD_FAIL,
+    MSG_TASK_DUPLICATED,
+    MSG_TASK_TYPE_INVALID,
     MSG_TASK_REMOVE_SUCCESS,
     MSG_TASK_REMOVE_FAIL,
     MSG_ALARM_ADD_SUCCESS,
     MSG_ALARM_ADD_FAIL,
     MSG_ALARM_REMOVE_SUCCESS,
     MSG_ALARM_REMOVE_FAIL,
+    MSG_WIFI_SETTING_UPDATE_SUCCESS,
+    MSG_WIFI_SETTING_UPDATE_FAIL,
+    MSG_TIME_SETTING_UPDATE_SUCCESS,
+    MSG_TIME_SETTING_UPDATE_FAIL,
 } msg_code_t;
 
-struct {
+const struct {
     msg_code_t id;
     const char *const msg;
 } code_list[] = {
-    {MSG_NONE,                      ""                          },
-    {MSG_ARGC_ERR,                  "Argument number error"     },
-    {MSG_FLAG_NOT_MATCH,            "Command flag not match"    },
-    {MSG_OPERATION_SUCCESS,         "Operation success"         },
-    {MSG_OPERATION_FAIL,            "Operation fail"            },
-    {MSG_INVALID_INPUT,             "Invalid input"             },
-    {MSG_INVALID_ACTION,            "Invalid action"            },
-    {MSG_INVALID_CONDITION,         "Invalid condition"         },
-    {MSG_RESET_SUCCESS,             "Reset Success"             },
-    {MSG_COMMAND_DOES_NOT_EXIST,    "Command does not exist"    },
-    {MSG_INFRARED_CAPTURE_START,    "Infrared capture start"    },
-    {MSG_INFRARED_CAPTURE_SUCCESS,  "Infrared capture success"  },
-    {MSG_INFRARED_CAPTURE_FAIL,     "Infrared capture fail"     },
-    {MSG_TASK_ADD_SUCCESS,          "Task add success"          },
-    {MSG_TASK_ADD_FAIL,             "Task add fail"             },
-    {MSG_TASK_REMOVE_SUCCESS,       "Task remove success"       },
-    {MSG_TASK_REMOVE_FAIL,          "Task remove fail"          },
-    {MSG_ALARM_ADD_SUCCESS,         "Alarm add success"         },
-    {MSG_ALARM_ADD_FAIL,            "Alarm add fail"            },
-    {MSG_ALARM_REMOVE_SUCCESS,      "Alarm remove success"      },
-    {MSG_ALARM_REMOVE_FAIL,         "Alarm remove fail"         },
+    {MSG_NONE,                          ""                              },
+    {MSG_ARGC_ERR,                      "Argument number error"         },
+    {MSG_FLAG_NOT_MATCH,                "Command flag not match"        },
+    {MSG_OPERATION_SUCCESS,             "Operation success"             },
+    {MSG_OPERATION_FAIL,                "Operation fail"                },
+    {MSG_INVALID_INPUT,                 "Invalid input"                 },
+    {MSG_INVALID_ACTION,                "Invalid action"                },
+    {MSG_INVALID_CONDITION,             "Invalid condition"             },
+    {MSG_RESET_SUCCESS,                 "Reset Success"                 },
+    {MSG_COMMAND_DOES_NOT_EXIST,        "Command does not exist"        },
+    {MSG_INFRARED_CAPTURE_START,        "Infrared capture start"        },
+    {MSG_INFRARED_CAPTURE_SUCCESS,      "Infrared capture success"      },
+    {MSG_INFRARED_CAPTURE_FAIL,         "Infrared capture fail"         },
+    {MSG_TASK_ADD_SUCCESS,              "Task add success"              },
+    {MSG_TASK_ADD_FAIL,                 "Task add fail"                 },
+    {MSG_TASK_DUPLICATED,               "Task duplicated"               },
+    {MSG_TASK_TYPE_INVALID,             "Task type invalid"             },
+    {MSG_TASK_REMOVE_SUCCESS,           "Task remove success"           },
+    {MSG_TASK_REMOVE_FAIL,              "Task remove fail"              },
+    {MSG_ALARM_ADD_SUCCESS,             "Alarm add success"             },
+    {MSG_ALARM_ADD_FAIL,                "Alarm add fail"                },
+    {MSG_ALARM_REMOVE_SUCCESS,          "Alarm remove success"          },
+    {MSG_ALARM_REMOVE_FAIL,             "Alarm remove fail"             },
+    {MSG_WIFI_SETTING_UPDATE_SUCCESS,   "WiFi setting update success"   },
+    {MSG_WIFI_SETTING_UPDATE_FAIL,      "WiFi setting update fail"      },
+    {MSG_TIME_SETTING_UPDATE_SUCCESS,   "TIME setting update success"   },
+    {MSG_TIME_SETTING_UPDATE_FAIL,      "TIME setting update fail"      },
 };
 
-const char *const get_message_text(msg_code_t id) {
+const char *get_message_text(msg_code_t id) {
     for (auto &&i : code_list) {
         if (i.id == id) {
             return i.msg;
@@ -78,11 +90,11 @@ void Command_ClearMeaagae() {
     command_msg = MSG_NONE;
 }
 
-// String Command_GetMessage() {
-//     msg_code_t id = command_msg;
-//     Command_ClearMeaagae();
-//     return get_message_text(id);
-// }
+String Command_GetMessage() {
+    msg_code_t id = command_msg;
+    Command_ClearMeaagae();
+    return get_message_text(id);
+}
 
 int Command_GetMessageCode() {
     msg_code_t id = command_msg;
@@ -115,6 +127,15 @@ int arg_2_int(String arg) {
                 Command_SetMessage(MSG_FLAG_NOT_MATCH); \
                 return -1;                              \
             } while(0)
+
+#define CHECK_ACTION(action)                        \
+    do {                                            \
+        if (!Command_IsValid(action)) {             \
+            log_e("invalid action:%s", action);     \
+            Command_SetMessage(MSG_INVALID_ACTION); \
+            return -1;                              \
+        }                                           \
+    } while (0)
 
 // 0        1       2           3
 // infrared send    preset_id
@@ -224,7 +245,7 @@ int32_t beeper_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-struct {
+const struct {
     const char *const name;
     void (*do_flip)(void);
 } flip_list[] = {
@@ -263,38 +284,16 @@ int32_t alarm_cmd(int32_t argc, char** argv) {
         Command_SetMessage(ret ? MSG_ALARM_REMOVE_SUCCESS : MSG_ALARM_REMOVE_FAIL);
     } else if (flag.equalsIgnoreCase("add")) {
         CHECK_ARGC(4);
-        bool ret = alarm_add(argv[2], argv[3], atoi(argv[4]));
         CHECK_ACTION(argv[3]);
         bool ret = alarm_add(argv[2], argv[3], arg_2_int(argv[4]));
         Command_SetMessage(ret ? MSG_ALARM_ADD_SUCCESS : MSG_ALARM_ADD_FAIL);
-    } else {
-        FLAG_NOT_MATCH();
-    }    
-    return 0;
-}
-
-// 0    1       2
-// task add     cmd
-// task remove  cmd
-// task clear
-// task check
-int32_t task_cmd(int32_t argc, char** argv) {
-    CHECK_ARGC(1);
-    String flag = argv[1];
-    if (flag.equalsIgnoreCase("clear")) {
-        task_clear();
-        Command_SetMessage(MSG_TASK_REMOVE_SUCCESS);
-    } else if (flag.equalsIgnoreCase("add")) {
-        CHECK_ARGC(2);
-        task_add(argv[2]);
-        Command_SetMessage(MSG_TASK_ADD_SUCCESS);
-    } else if (flag.equalsIgnoreCase("remove")) {
-        CHECK_ARGC(2);
-        task_remove(argv[2]);
-        Command_SetMessage(MSG_TASK_REMOVE_SUCCESS);
     } else if (flag.equalsIgnoreCase("check")) {
-        for (auto &&cmd : task_get())
-            Serial.println(cmd);
+        String *alarm_list = alarm_get_list();
+        for (int i = 0; i < alarm_get_list_size(); i++) {
+            if (!alarm_list[i].isEmpty()) {
+                Serial.println(alarm_list[i]);
+            }
+        }
     } else {
         FLAG_NOT_MATCH();
     }    
@@ -314,12 +313,35 @@ const struct {
     {"false",		[]() -> float { return 1.0; }   },
 };
 
-condition_func_t _condition_get(const char *s) {
-    String str = String(s);
+bool condition_is_valid(String str) {
+    for (auto &&condition : conditions)
+        if (str.equalsIgnoreCase(condition.name))
+            return true;
+    return false;
+}
+
+condition_func_t condition_get(String str) {
     for (auto &&condition : conditions)
         if (str.equalsIgnoreCase(condition.name))
             return condition.func;
     return NULL;
+}
+
+const char* task_types[] = {
+    "higher",
+    "lower",
+    "equal",
+    "not_equal",
+    "linear",
+    "interval",
+    "inverse_interval",
+};
+
+bool task_type_is_valid(String type) {
+    for (auto &&t : task_types)
+        if (type.equalsIgnoreCase(t)) 
+            return true;
+    return false;
 }
 
 float condition_execute(condition_func_t func) { return func ? func() : 0.0; }
@@ -337,17 +359,13 @@ float map_float(float x, float in_min, float in_max, float out_min, float out_ma
 // handler  relay   brightness  higher      1.5
 // handler  led     condition   linear      in_l    in_h    out_l   out_h
 // handler  led     condition   interval    low     high   
-int32_t handler_cmd(int32_t argc, char** argv) {
+int32_t task_handler_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(3);
     String action = argv[1];
-    condition_func_t condition = _condition_get(argv[2]);
+    condition_func_t condition = condition_get(argv[2]);
     String type = argv[3];
 
-    if (!Command_IsValid(action)) {
-        log_e("invalid action:%s", action.c_str());
-        Command_SetMessage(MSG_INVALID_ACTION);
-        return -1;
-    }
+    CHECK_ACTION(action.c_str());
     
     if (condition == NULL) {
         log_e("invalid condition:%s", argv[1]);
@@ -408,6 +426,56 @@ int32_t handler_cmd(int32_t argc, char** argv) {
     
     return 0;
 }
+
+// 0    1       2       3           4       5
+// task flag    action  condition   type    params+
+// task add     
+// task remove  action
+// task clear
+// task check
+int32_t task_cmd(int32_t argc, char** argv) {
+    CHECK_ARGC(1);
+    String flag = argv[1];
+    if (flag.equalsIgnoreCase("clear")) {
+        task_clear();
+        Command_SetMessage(MSG_TASK_REMOVE_SUCCESS);
+    } else if (flag.equalsIgnoreCase("add")) {
+        CHECK_ARGC(5);
+        CHECK_ACTION(argv[2]);
+
+        if (!condition_is_valid(argv[3])) {
+            log_e("invalid condition:%s", argv[3]);
+            Command_SetMessage(MSG_INVALID_CONDITION);
+            return -1;
+        }
+        if (!task_type_is_valid(argv[4])) {
+            log_e("invalid type:%s", argv[4]);
+            Command_SetMessage(MSG_TASK_TYPE_INVALID);
+            return -1;
+        }
+        String task = "task_handler ";
+        for (int i = 2; i < argc; i++) {
+            task += argv[i];
+            task += ' ';
+        }
+        
+        log_i("task to be added:%s", task.c_str());
+        bool ret = task_add(task);
+        Command_SetMessage(ret ? MSG_TASK_ADD_SUCCESS : MSG_TASK_DUPLICATED);
+    } else if (flag.equalsIgnoreCase("remove")) {
+        CHECK_ARGC(2);
+        bool ret = task_remove(argv[2]);
+        Command_SetMessage(ret ? MSG_TASK_REMOVE_SUCCESS : MSG_TASK_REMOVE_FAIL);
+    } else if (flag.equalsIgnoreCase("check")) {
+        for (auto &&cmd : task_get())
+            Serial.println(cmd);
+    } else {
+        FLAG_NOT_MATCH();
+    }    
+    return 0;
+}
+
+
 // 0        1       2           3
 // settings wifi    ssid        password
 // settings time    timestamp
@@ -416,10 +484,12 @@ int32_t settings_cmd(int32_t argc, char** argv) {
     String flag = argv[1];
     if (flag.equalsIgnoreCase("wifi")) {
         CHECK_ARGC(3);
-        WiFi_UpdateSetting(argv[2], argv[3], Preferences_Get());
+        bool ret = WiFi_UpdateSetting(argv[2], argv[3], Preferences_Get());
+        Command_SetMessage(ret ? MSG_WIFI_SETTING_UPDATE_SUCCESS : MSG_WIFI_SETTING_UPDATE_FAIL);
     } else if (flag.equalsIgnoreCase("time")) {
         CHECK_ARGC(2);
-        TimeStamp_Update(atol(argv[2]), Preferences_Get());
+        bool ret = TimeStamp_Update(atol(argv[2]), Preferences_Get());
+        Command_SetMessage(ret ? MSG_TIME_SETTING_UPDATE_SUCCESS : MSG_TIME_SETTING_UPDATE_FAIL);
     } else {
         FLAG_NOT_MATCH();
     }
@@ -477,24 +547,28 @@ const struct {
     lwshell_cmd_fn cmd_fn;
     const char* desc;
 } lwshell_cmd_list[] = {
-    {"run",         run_cmd,        "run some command"          },
-    {"handler",     handler_cmd,    "handler"                   },
-    {"settings",    settings_cmd,   "system settings"           },
-    {"infrared",    infrared_cmd,   "Infrared management"       },
-    {"preference",  preference_cmd, "Preference management"     },
-    {"led",         led_cmd,        "Led brightness control"    },
-    {"motor",       motor_cmd,      "Motor speed control"       },
-    {"relay",       relay_cmd,      "Relay control"             },
-    {"beeper",      beeper_cmd,     "Beeper control"            },
-    {"alarm",       alarm_cmd,      "Alarm setting"             },
-    {"task",        task_cmd,       "Task setting"              },
-    {"mqtt",        mqtt_cmd,       "MQTT send"                 },
-    {"flip",        flip_cmd,       "Flip something"            },
-    {"reset",       reset_cmd,      "Reset something"           },
-    {"echo",        echo_cmd,       "Echo every input"          },
+    {"run",             run_cmd,            "Run some command"          },
+    {"task_handler",    task_handler_cmd,   "Task handler"              },
+    {"settings",        settings_cmd,       "System settings"           },
+    {"infrared",        infrared_cmd,       "Infrared management"       },
+    {"preference",      preference_cmd,     "Preference management"     },
+    {"led",             led_cmd,            "Led brightness control"    },
+    {"motor",           motor_cmd,          "Motor speed control"       },
+    {"relay",           relay_cmd,          "Relay control"             },
+    {"beeper",          beeper_cmd,         "Beeper control"            },
+    {"alarm",           alarm_cmd,          "Alarm setting"             },
+    {"task",            task_cmd,           "Task setting"              },
+    {"mqtt",            mqtt_cmd,           "MQTT send"                 },
+    {"flip",            flip_cmd,           "Flip something"            },
+    {"reset",           reset_cmd,          "Reset something"           },
+    {"echo",            echo_cmd,           "Echo every input"          },
 };
 
 bool Command_IsValid(String command) {
+    int index = command.indexOf(' ');
+    if (index > 0) {
+        command = command.substring(0, index);
+    }
     for (auto &&cmd : lwshell_cmd_list) {
         if (command.equalsIgnoreCase(cmd.cmd_name)) {
             return true;
@@ -548,11 +622,19 @@ void Command_CheckSerial() {
 
 #include <vector>
 
+lwshellr_t Command_RunRaw(String &cmd) {
+    if (Command_IsValid(cmd)) {
+        return lwshell_input(cmd.c_str(), cmd.length());
+    }
+    Command_SetMessage(MSG_COMMAND_DOES_NOT_EXIST);
+    return lwshellERR;
+}
+
 bool Command_Run(std::vector<String> &cmd_list) {
     bool ret = true;
     int msg_code = MSG_NONE;
     for (auto &&cmd : cmd_list) {
-        ret = ret && (lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK);
+        ret = ret && (Command_RunRaw(cmd) == lwshellOK);
         msg_code = max(msg_code, Command_GetMessageCode());
     }
     Command_SetMessage((msg_code_t)msg_code);
@@ -590,7 +672,7 @@ bool Command_Run(String cmd) {
     } else {
         Command_ClearMeaagae();
         cmd += '\n';
-        return lwshell_input(cmd.c_str(), cmd.length()) == lwshellOK;
+        return Command_RunRaw(cmd) == lwshellOK;
     }
 }
 

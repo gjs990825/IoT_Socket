@@ -4,13 +4,15 @@
 
 std::vector<String> tasks;
 
-void task_add(String cmd) {
+bool task_add(String cmd) {
+    int task_count = tasks.size();
     cmd.trim();
     tasks.push_back(cmd);
 
     // remove duplicate
     std::sort(tasks.begin(), tasks.end());
     tasks.erase(std::unique(tasks.begin(), tasks.end()), tasks.end());
+    return task_count < tasks.size();
 }
 
 void task_clear() {
@@ -18,13 +20,15 @@ void task_clear() {
     log_i("tasks cleared");
 }
 
-void task_remove(String cmd) {
+bool task_remove(String cmd) {
+    int task_count = tasks.size();
     tasks.erase(std::remove_if(tasks.begin(),
                                 tasks.end(),
                                 [cmd](String s) -> bool {
                                     return s.equalsIgnoreCase(cmd);
                                 }),
                 tasks.end());
+    return task_count > tasks.size();
 }
 
 void task_check() {
