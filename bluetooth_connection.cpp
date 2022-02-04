@@ -44,13 +44,13 @@ void Bluetooth_Setup() {
 
 void Bluetooth_Send(const char *payload) {
     log_d("Bluetooth Upload:%s", payload);
-    SerialBT.println(payload);
+    SerialBT.println(MQTT_TOPIC_STATE + payload);
 }
 
 void Bluetooth_Ack(bool status, int msg_code) {
     log_i("Bluetooth ack:%d with msg code:%d", status, msg_code);
     char *json = json_helper_parse_ack(status, msg_code);
-    SerialBT.println(json);
+    SerialBT.println(MQTT_TOPIC_ACK + json);
 }
 
 bool Bluetooth_IsConnected() { return SerialBT.connected(); }
