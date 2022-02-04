@@ -3,6 +3,12 @@
 
 #include <WString.h>
 
+enum {
+    MQTT_QOS_AT_MOST_ONCE = 0,
+    MQTT_QOS_AT_LEAST_ONCE = 1,
+    MQTT_QOS_EXACTLY_ONCE = 2,
+};
+
 void MQTT_Setup();
 void MQTT_SetCommandTools(bool (*handler)(String), int (*msg_code_getter)(void));
 void MQTT_Check();

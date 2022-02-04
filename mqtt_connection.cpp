@@ -27,7 +27,7 @@ bool MQTT_Connect() {
         return false;
     }
     log_i("connected");
-    client.subscribe(MQTT_TOPIC_COMMAND);
+    client.subscribe(MQTT_TOPIC_COMMAND, MQTT_QOS_EXACTLY_ONCE);
     return true;
 }
 
@@ -76,7 +76,7 @@ void MQTT_Send() {
 void MQTT_Send(const char *payload) {
     mqtt_last_send = millis();
     log_d("MQTT msg:%s", payload);
-    if (!client.publish(MQTT_TOPIC_STATE, payload)) {
+    if (!client.publish(MQTT_TOPIC_STATE, payload, false, MQTT_QOS_AT_LEAST_ONCE)) {
         log_e("MQTT msg send failed");
     }
 }
@@ -84,7 +84,7 @@ void MQTT_Send(const char *payload) {
 void MQTT_Ack(bool status, int msg_code) {
     char *json = json_helper_parse_ack(status, msg_code);
     log_i("MQTT ack:%d with msg code:%d", status, msg_code);
-    if (!client.publish(MQTT_TOPIC_ACK, json)) {
+    if (!client.publish(MQTT_TOPIC_ACK, json, false, MQTT_QOS_AT_LEAST_ONCE)) {
         log_e("MQTT ack failed");
     }
 }

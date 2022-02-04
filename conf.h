@@ -15,14 +15,6 @@ static String password = "";
 // Server address
 static const IPAddress SERVER_IP_ADDRESS = IPAddress(120, 24, 84, 40);
 static const String SERVER_IP_ADDRESS_STRING = "120.24.84.40";
-// static const IPAddress SERVER_IP_ADDRESS = IPAddress(192, 168, 123, 100);
-// static const String SERVER_IP_ADDRESS_STRING = "192.168.123.100";
-
-// HTTP
-static const int SERVER_HTTP_PORT = 8080;
-static const String HTTP_BASE_ADDRESS = "http://" + SERVER_IP_ADDRESS_STRING + ":" + SERVER_HTTP_PORT + "/IOT_Socket";
-static const String HTTP_DATA_HANDLER = HTTP_BASE_ADDRESS + "/ESP32UploadData";
-static const String HTTP_GET_COMMAND = HTTP_BASE_ADDRESS + "/ESP32GetCommand";
 
 // Acks
 const char *const ACK_OK = "OK";
