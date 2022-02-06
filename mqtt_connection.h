@@ -16,5 +16,6 @@ void MQTT_Send();
 void MQTT_Send(const char *payload);
 unsigned long MQTT_GetLastSend();
 void MQTT_Ack(bool status, int msg_code = 0);
+bool MQTT_IsConnected();
 
 #endif // _MQTT_CONNECTION_H_

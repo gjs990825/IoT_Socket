@@ -84,7 +84,18 @@ void OLED_UpdateInfo() {
     OLED.setCursor(0, 0);
     OLED.setTextSize(2);
     OLED.print(LocalTime_GetString());
-    OLED.printf("%s\n", is_server_available() ? "" : " !"); // offline indicator
+
+    char indicator;
+    if (Bluetooth_IsConnected()) {
+        indicator = 'B';
+    } else if (MQTT_IsConnected()) {
+        indicator = 'M';
+    } else if (WIFI_IsConnected()) {
+        indicator = '!';
+    } else {
+        indicator = 'X';
+    }
+    OLED.printf(" %c\n", indicator);
     OLED.setTextSize(1);
     OLED.printf("\nTemperature:%.3f\n\n", Sensors::getTemperature());
     OLED.printf("Pressure:%.3f\n\n", Sensors::getPressure());

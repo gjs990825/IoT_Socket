@@ -59,6 +59,10 @@ void MQTT_Setup() {
     MQTT_Connect();
 }
 
+bool MQTT_IsConnected() {
+    return client.connected();
+}
+
 void MQTT_Check() {
     if (!client.loop()) {
         MQTT_Connect();
