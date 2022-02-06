@@ -33,10 +33,10 @@ typedef enum {
     MSG_ALARM_ADD_FAIL,
     MSG_ALARM_REMOVE_SUCCESS,
     MSG_ALARM_REMOVE_FAIL,
-    MSG_WIFI_SETTING_UPDATE_SUCCESS,
-    MSG_WIFI_SETTING_UPDATE_FAIL,
+    MSG_WIFI_SETTING_UPDATING,
     MSG_TIME_SETTING_UPDATE_SUCCESS,
     MSG_TIME_SETTING_UPDATE_FAIL,
+    MSG_SYSTEM_REBOOTING,
 } msg_code_t;
 
 const struct {
@@ -66,10 +66,10 @@ const struct {
     {MSG_ALARM_ADD_FAIL,                "Alarm add fail"                },
     {MSG_ALARM_REMOVE_SUCCESS,          "Alarm remove success"          },
     {MSG_ALARM_REMOVE_FAIL,             "Alarm remove fail"             },
-    {MSG_WIFI_SETTING_UPDATE_SUCCESS,   "WiFi setting update success"   },
-    {MSG_WIFI_SETTING_UPDATE_FAIL,      "WiFi setting update fail"      },
+    {MSG_WIFI_SETTING_UPDATING,         "WiFi setting updating"         },
     {MSG_TIME_SETTING_UPDATE_SUCCESS,   "TIME setting update success"   },
     {MSG_TIME_SETTING_UPDATE_FAIL,      "TIME setting update fail"      },
+    {MSG_SYSTEM_REBOOTING,              "System rebooting"              },
 };
 
 const char *get_message_text(msg_code_t id) {
@@ -483,20 +483,35 @@ int32_t task_cmd(int32_t argc, char** argv) {
 }
 
 
-// 0        1       2           3
-// settings wifi    ssid        password
-// settings time    timestamp
+// 0        1               2           3
+// settings wifi            ssid        password
+// settings wifi_instant    ssid        password
+// settings time            timestamp
+// settings reboot
+// settings reboot_instant
 int32_t settings_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("wifi")) {
         CHECK_ARGC(3);
-        bool ret = WiFi_UpdateSetting(argv[2], argv[3], Preferences_Get());
-        Command_SetMessage(ret ? MSG_WIFI_SETTING_UPDATE_SUCCESS : MSG_WIFI_SETTING_UPDATE_FAIL);
+        char buffer[128];
+        sprintf(buffer, "settings wifi_instant \"%s\" \"%s\"", argv[2], argv[3]);
+        CommandQueue_Add(buffer);
+        Command_SetMessage(MSG_WIFI_SETTING_UPDATING);
+    } else if (flag.equalsIgnoreCase("wifi_instant")) {
+        CHECK_ARGC(3);
+        log_w("update wifi setting:ssid:%s, pass:%s", argv[2], argv[3]);
+        WiFi_UpdateSetting(argv[2], argv[3], Preferences_Get());
     } else if (flag.equalsIgnoreCase("time")) {
         CHECK_ARGC(2);
         bool ret = TimeStamp_Update(atol(argv[2]), Preferences_Get());
         Command_SetMessage(ret ? MSG_TIME_SETTING_UPDATE_SUCCESS : MSG_TIME_SETTING_UPDATE_FAIL);
+    } else if (flag.equalsIgnoreCase("reboot")) {
+        CommandQueue_Add("settings reboot_instant");
+        Command_SetMessage(MSG_SYSTEM_REBOOTING);
+    } else if (flag.equalsIgnoreCase("reboot_instant")) {
+        log_w("System rebooting...");
+        ESP.restart();
     } else {
         FLAG_NOT_MATCH();
     }

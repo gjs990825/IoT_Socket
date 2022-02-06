@@ -49,7 +49,7 @@ extern "C" {
  *
  */
 #ifndef LWSHELL_CFG_MAX_CMDS
-#define LWSHELL_CFG_MAX_CMDS                    15
+#define LWSHELL_CFG_MAX_CMDS                    20
 #endif
 
 /**
