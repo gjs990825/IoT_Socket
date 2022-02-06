@@ -545,6 +545,9 @@ int32_t reset_cmd(int32_t argc, char** argv) {
         MotorControl_SetSpeed(0);
         log_i("reset to default");
         Command_SetMessage(MSG_RESET_SUCCESS);
+    } else if (flag.equalsIgnoreCase("wifi")) {
+        WiFi_ForceUpdateSetting("", "", Preferences_Get());
+        log_w("wifi setting reset");
     } else {
         FLAG_NOT_MATCH();
     }

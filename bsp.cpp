@@ -267,6 +267,14 @@ bool WiFi_UpdateSetting(const char *_ssid, const char *_password, Preferences &p
     }
 }
 
+bool WiFi_ForceUpdateSetting(const char *_ssid, const char *_password, Preferences &pref) {
+    ssid = _ssid; password = _password;
+    pref.putString("pref_ssid", ssid);
+    pref.putString("pref_pass", password);
+    WIFI_Setup();
+    log_i("Wi-Fi setting updated");
+}
+
 void TimeStamp_Restore(Preferences &pref) {
     timeStamp = pref.getLong("pref_time_stamp");
     log_i("time stamp restored:%ld", timeStamp);

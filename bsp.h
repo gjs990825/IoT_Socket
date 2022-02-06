@@ -95,6 +95,7 @@ bool WIFI_IsConnected();
 void WiFi_RestoreSettings(Preferences &pref);
 bool WiFi_UpdateSetting(String setting, Preferences &pref);
 bool WiFi_UpdateSetting(const char *_ssid, const char *_password, Preferences &pref);
+bool WiFi_ForceUpdateSetting(const char *_ssid, const char *_password, Preferences &pref);
 
 void TimeStamp_Restore(Preferences &pref);
 bool TimeStamp_Update(long t, Preferences &pref);
