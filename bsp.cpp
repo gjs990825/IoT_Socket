@@ -273,6 +273,7 @@ bool WiFi_ForceUpdateSetting(const char *_ssid, const char *_password, Preferenc
     pref.putString("pref_pass", password);
     WIFI_Setup();
     log_i("Wi-Fi setting updated");
+    return true;
 }
 
 void TimeStamp_Restore(Preferences &pref) {
