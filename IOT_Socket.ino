@@ -128,8 +128,7 @@ void loop() {
             const char* buffer = json_helper_parse_send();;
             if (Bluetooth_IsConnected()) {
                 Bluetooth_Send(buffer);
-            }
-            if (WIFI_IsConnected()) {
+            } else {
                 MQTT_Send(buffer);
             }
         }

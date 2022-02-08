@@ -27,6 +27,7 @@ void blueToothCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
             } else {
                 Bluetooth_Ack(status);
             }
+            Bluetooth_Send();
             if (!status) {
                 log_e("cmd:\"%s\" execute failed", btString.c_str());
             }
@@ -45,6 +46,10 @@ void Bluetooth_Setup() {
 void Bluetooth_Send(const char *payload) {
     log_d("Bluetooth Upload:%s", payload);
     SerialBT.println(MQTT_TOPIC_STATE + payload);
+}
+
+void Bluetooth_Send() {
+    Bluetooth_Send(json_helper_parse_send());
 }
 
 void Bluetooth_Ack(bool status, int msg_code) {
