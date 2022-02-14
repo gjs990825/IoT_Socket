@@ -19,7 +19,7 @@ char *json_helper_parse_send() {
     jsonDocSend["peripheral"]["relay"] = Relay.getBool();
     jsonDocSend["peripheral"]["led"] = Led.getBool();
     jsonDocSend["peripheral"]["beeper"] = Beeper.getBool();
-    jsonDocSend["peripheral"]["motor"] = MotorControl_GetSpeed();
+    jsonDocSend["peripheral"]["pwm"] = Pwm.get();
     jsonDocSend["system"]["time"] = getUnixTime();
     jsonDocSend["system"]["temperature"] = temperatureRead();
 

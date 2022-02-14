@@ -33,7 +33,6 @@ void setup() {
     Serial.begin(115200);
     OLED_Setup();
     BMP280_Setup();
-    MotorControl_Setup();
     KEY_Setup();
 
     key_set_handler(key1_press,

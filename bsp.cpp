@@ -102,31 +102,6 @@ void key_check() {
     }
 }
 
-void MotorControl_Setup() {
-    pinMode(PWM_OUT_PIN, OUTPUT);
-    pinMode(MOTOR_CTL_A_PIN, OUTPUT);
-    pinMode(MOTOR_CTL_B_PIN, OUTPUT);
-    ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
-    ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
-}
-
-int motor_speed = 0;
-
-void MotorControl_SetSpeed(int val) {
-    motor_speed = val;
-    val = constrain(val, -100, 100);
-    bool is_positive = val >= 0;
-    digitalWrite(MOTOR_CTL_A_PIN, is_positive);
-    digitalWrite(MOTOR_CTL_B_PIN, !is_positive);
-    // 0 ~ 100 => 0 ~ 2^10
-    uint32_t duty = (uint32_t)map(abs(val), 0, 100, 0, 0x3FF);
-    ledcWrite(MOTOR_PWM_CHANNEL, duty);
-}
-
-int MotorControl_GetSpeed() {
-    return motor_speed;
-}
-
 Adafruit_SSD1306 OLED(128, 64, OLED_MOSI_PIN, OLED_CLK_PIN, OLED_DC_PIN, OLED_RESET_PIN, OLED_CS_PIN);
 
 void OLED_Setup() {

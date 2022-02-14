@@ -239,11 +239,11 @@ int32_t led_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-// 0        1
-// motor    speed
-int32_t motor_cmd(int32_t argc, char** argv) {
+// 0    1
+// pwm  duty
+int32_t pwm_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    MotorControl_SetSpeed(atoi(argv[1]));
+    output_peripheral_arg_handler(&Pwm, argv[1]);
     return 0;
 }
 
@@ -270,6 +270,7 @@ const struct {
     {"relay"    , &Relay    },
     {"beeper"   , &Beeper   },
     {"led"      , &Led      },
+    {"pwm"      , &Pwm      },
 };
 
 // 0    1
@@ -596,7 +597,7 @@ const struct {
     {"infrared",        infrared_cmd,       "Infrared management"       },
     {"preference",      preference_cmd,     "Preference management"     },
     {"led",             led_cmd,            "Led brightness control"    },
-    {"motor",           motor_cmd,          "Motor speed control"       },
+    {"pwm",             pwm_cmd,            "PWM duty control"          },
     {"relay",           relay_cmd,          "Relay control"             },
     {"beeper",          beeper_cmd,         "Beeper control"            },
     {"alarm",           alarm_cmd,          "Alarm setting"             },

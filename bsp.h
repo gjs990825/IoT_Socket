@@ -47,8 +47,8 @@ protected:
     int output;
 
 public:
-    OutputPeripheral() {};
-    ~OutputPeripheral() {};
+    OutputPeripheral() {}
+    ~OutputPeripheral() {}
 
     virtual void set(int v) = 0;
     virtual void set(bool v) = 0;
@@ -68,7 +68,7 @@ public:
         ledcAttachPin(LED1_PIN, LED1_CHANNEL);
         set(false);
     }
-    ~LED() {};
+    ~LED() {}
 
     void set(int v) {
         output = constrain(v, 0, 0xFF);
@@ -85,7 +85,7 @@ public:
         pinMode(RELAY_PIN, OUTPUT);
         set(false);
     };
-    ~RELAY() {};
+    ~RELAY() {}
 
     void set(int v) { set(!!v); }
     void set(bool v) { 
@@ -100,7 +100,7 @@ public:
         pinMode(BEEPER_PIN, OUTPUT);
         set(false);
     };
-    ~BEEPER() {};
+    ~BEEPER() {}
 
     void set(int v) { set(!!v); }
     void set(bool v) { 
@@ -109,9 +109,38 @@ public:
     }
 };
 
+class PWM: public OutputPeripheral
+{
+public:
+    PWM() {
+        pinMode(PWM_OUT_PIN, OUTPUT);
+        pinMode(MOTOR_CTL_A_PIN, OUTPUT);
+        pinMode(MOTOR_CTL_B_PIN, OUTPUT);
+        ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
+        ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
+    }
+    ~PWM() {}
+
+    void set(int v) {
+        output = constrain(v, -100, 100);
+        bool is_positive = output >= 0;
+        digitalWrite(MOTOR_CTL_A_PIN, is_positive);
+        digitalWrite(MOTOR_CTL_B_PIN, !is_positive);
+        // 0 ~ 100 => 0 ~ 2^10
+        uint32_t duty = (uint32_t)map(abs(output), 0, 100, 0, 0x3FF);
+        ledcWrite(MOTOR_PWM_CHANNEL, duty);
+    }
+
+    void set(bool v) {
+        set(v ? 100 : 0);
+    }
+};
+
+
 static LED Led;
 static RELAY Relay;
 static BEEPER Beeper;
+static PWM Pwm;
 
 typedef enum {
     KEY_RELEASE,
@@ -133,27 +162,6 @@ void key_set_handler(key_handler k1,
                     key_handler k2,
                     key_handler k2_long);
 void key_check();
-
-// void LED_Setup();
-// void LED_Set(uint8_t val);
-// void LED_Set(bool sta);
-// uint8_t LED_Get();
-// bool LED_GetBool();
-// void LED_Flip();
-
-// void Relay_Setup();
-// void Relay_Set(bool);
-// bool Relay_Get();
-// void Relay_Flip();
-
-// void Beeper_Setup();
-// void Beeper_Set(bool);
-// bool Beeper_Get();
-// void Beeper_Flip();
-
-void MotorControl_Setup();
-void MotorControl_SetSpeed(int val);
-int MotorControl_GetSpeed();
 
 void OLED_Setup();
 void BMP280_Setup();
