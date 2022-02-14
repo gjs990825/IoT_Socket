@@ -47,9 +47,6 @@ protected:
     int output;
 
 public:
-    OutputPeripheral() {}
-    ~OutputPeripheral() {}
-
     virtual void set(int v) = 0;
     virtual void set(bool v) = 0;
     int get() { return output; };
@@ -68,7 +65,6 @@ public:
         ledcAttachPin(LED1_PIN, LED1_CHANNEL);
         set(false);
     }
-    ~LED() {}
 
     void set(int v) {
         output = constrain(v, 0, 0xFF);
@@ -85,7 +81,6 @@ public:
         pinMode(RELAY_PIN, OUTPUT);
         set(false);
     };
-    ~RELAY() {}
 
     void set(int v) { set(!!v); }
     void set(bool v) { 
@@ -100,7 +95,6 @@ public:
         pinMode(BEEPER_PIN, OUTPUT);
         set(false);
     };
-    ~BEEPER() {}
 
     void set(int v) { set(!!v); }
     void set(bool v) { 
@@ -119,7 +113,6 @@ public:
         ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
         ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
     }
-    ~PWM() {}
 
     void set(int v) {
         output = constrain(v, -100, 100);
@@ -131,11 +124,8 @@ public:
         ledcWrite(MOTOR_PWM_CHANNEL, duty);
     }
 
-    void set(bool v) {
-        set(v ? 100 : 0);
-    }
+    void set(bool v) { set(v ? 100 : 0); }
 };
-
 
 static LED Led;
 static RELAY Relay;
