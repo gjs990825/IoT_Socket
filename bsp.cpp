@@ -114,21 +114,6 @@ void OLED_Setup() {
     OLED.display();
 }
 
-Adafruit_BMP280 BMP280;
-
-void BMP280_Setup() {
-    Wire.begin(BMP280_SDA_PIN, BMP280_SCL_PIN);
-    if (!BMP280.begin(BMP280_ADDRESS_ALT)) {
-        log_e("BMP280 ERR!");
-    } else {
-        BMP280.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                           Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                           Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                           Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                           Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
-    }
-}
-
 Preferences preferences;
 
 void Preferences_Init() {
@@ -260,12 +245,4 @@ String LocalTime_GetString() {
     char buf[30];
     strftime(buf, 30, "%T", &timeinfo);
     return String(buf);
-}
-
-uint16_t Photoresistor_GetRaw() {
-    return analogRead(ADC_PIN);
-}
-
-float Photoresistor_GetVoltage() {
-    return ((Photoresistor_GetRaw() * 3.3) / 4095);
 }

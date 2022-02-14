@@ -1,7 +1,7 @@
 #include "json_helper.h"
 #include "conf.h"
 #include "bsp.h"
-#include "sensors.h"
+#include "sensors.hpp"
 
 DynamicJsonDocument jsonDocSend(ARDUINOJSON_SEND_BUFFER_SIZE);
 DynamicJsonDocument jsonDocAck(ARDUINOJSON_ACK_BUFFER_SIZE);
@@ -13,9 +13,9 @@ char *json_helper_serialize(DynamicJsonDocument &jsonDoc) {
 }
 
 char *json_helper_parse_send() {
-    jsonDocSend["sensor"]["temperature"] = Sensors::getTemperature();
-    jsonDocSend["sensor"]["pressure"] = Sensors::getPressure();
-    jsonDocSend["sensor"]["brightness"] = Sensors::getBrightness();
+    jsonDocSend["sensor"]["temperature"] = Sensors.getTemperature();
+    jsonDocSend["sensor"]["pressure"] = Sensors.getPressure();
+    jsonDocSend["sensor"]["brightness"] = Sensors.getBrightness();
     jsonDocSend["peripheral"]["relay"] = Relay.getBool();
     jsonDocSend["peripheral"]["led"] = Led.getBool();
     jsonDocSend["peripheral"]["beeper"] = Beeper.getBool();

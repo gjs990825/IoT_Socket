@@ -1,5 +1,5 @@
 #include "bsp.h"
-#include "sensors.h"
+#include "sensors.hpp"
 #include "infrared.h"
 #include "command.h"
 #include "mqtt_connection.h"
@@ -32,8 +32,8 @@ void setup() {
     // Peripheral and sensors
     Serial.begin(115200);
     OLED_Setup();
-    BMP280_Setup();
     KEY_Setup();
+    Sensors.initialize();
 
     key_set_handler(key1_press,
                     key1_long_press,
@@ -79,9 +79,9 @@ void OLED_UpdateInfo() {
     }
     OLED.printf(" %c\n", indicator);
     OLED.setTextSize(1);
-    OLED.printf("\nTemperature:%.3f\n\n", Sensors::getTemperature());
-    OLED.printf("Pressure:%.3f\n\n", Sensors::getPressure());
-    OLED.printf("Brightness:%d", (int)Sensors::getBrightness());
+    OLED.printf("\nTemperature:%.3f\n\n", Sensors.getTemperature());
+    OLED.printf("Pressure:%.3f\n\n", Sensors.getPressure());
+    OLED.printf("Brightness:%d", (int)Sensors.getBrightness());
     OLED.printf(" %s", get_state_string().c_str()); // states indicator
     OLED.display();
 }
@@ -98,7 +98,7 @@ void loop() {
     }
 
     TASK(500) {
-        Sensors::updateAll();
+        Sensors.updateAll();
         task_check();
         alarm_check();
         OLED_UpdateInfo();

@@ -2,7 +2,6 @@
 #define _BSP_H_
 
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_BMP280.h>
 #include <Preferences.h>
 
 #define TASK(T) for(static unsigned long var = 0; var + (T) < millis(); var = millis())
@@ -38,8 +37,6 @@ static const uint8_t MOTOR_PWM_CHANNEL = 1;
 
 // Peripherals
 extern Adafruit_SSD1306 OLED;
-extern Adafruit_BMP280 BMP280;
-
 
 class OutputPeripheral
 {
@@ -154,9 +151,7 @@ void key_set_handler(key_handler k1,
 void key_check();
 
 void OLED_Setup();
-void BMP280_Setup();
 uint16_t Photoresistor_GetRaw();
-float Photoresistor_GetVoltage();
 
 void Preferences_Init();
 Preferences& Preferences_Get();

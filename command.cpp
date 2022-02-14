@@ -1,7 +1,7 @@
 #include "command.h"
 #include "bsp.h"
 #include "lwshell.h"
-#include "sensors.h"
+#include "sensors.hpp"
 #include "infrared.h"
 #include "mqtt_connection.h"
 #include "alarms.h"
@@ -325,11 +325,11 @@ const struct {
     const char *name;
     condition_func_t func;
 } conditions[] = {
-    {"temperature",	Sensors::getTemperature         },
-    {"pressure",	Sensors::getPressure	        },
-    {"brightness",  Sensors::getBrightness          },
-    {"true",		[]() -> float { return 0.0; }   },
-    {"false",		[]() -> float { return 1.0; }   },
+    {"temperature",	[]() { return Sensors.getTemperature(); }       },
+    {"pressure",	[]() { return Sensors.getPressure(); }          },
+    {"brightness",  []() { return (float)Sensors.getBrightness(); } },
+    {"true",		[]() { return 0.0f; }                           },
+    {"false",		[]() { return 1.0f; }                           },
 };
 
 bool condition_is_valid(String str) {
