@@ -12,18 +12,11 @@
 
 void key1_press() {
     log_i("key1 press");
-    Relay_Flip();
+    Command_Run("flip relay");
 }
 
 void key1_long_press() {
     log_i("key1 long press");
-    // if (!Infrared_IsCapturing()) {
-    //     Infrared_StartCapture(0);
-    // } else {
-    //     if (Infrared_EndCapture()) {
-    //         Infrared_StorePreset(Preferences_Get());
-    //     }
-    // }
 }
 
 void key2_press() {
@@ -33,21 +26,11 @@ void key2_press() {
 
 void key2_long_press() {
     log_i("key2 long press");
-    // if (!Infrared_IsCapturing()) {
-    //     Infrared_StartCapture(1);
-    // } else {
-    //     if (Infrared_EndCapture()) {
-    //         Infrared_StorePreset(Preferences_Get());
-    //     } 
-    // }
 }
 
 void setup() {
     // Peripheral and sensors
     Serial.begin(115200);
-    LED_Setup();
-    Beeper_Setup();
-    Relay_Setup();
     OLED_Setup();
     BMP280_Setup();
     MotorControl_Setup();

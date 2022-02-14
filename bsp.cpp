@@ -6,49 +6,19 @@
 #include <Adafruit_GFX.h>
 #include <Preferences.h>
 
-const uint8_t LED1_CHANNEL = 0;
-
-uint8_t led_status = 0;
-void LED_Set(uint8_t val) {
-    led_status = val;
-    ledcWrite(LED1_CHANNEL, val);
-}
-
-void LED_Set(bool sta) {
-    LED_Set((uint8_t)(sta ? 0xFF : 0x00));
-}
-
-bool LED_GetBool() {
-    return led_status != 0;
-}
-
-uint8_t LED_Get() {
-    return led_status;
-}
-
-void LED_Flip() {
-    LED_Set(LED_Get() == 0);
-}
-
-void LED_Setup() {
-    pinMode(LED1_PIN, OUTPUT);
-    ledcSetup(LED1_CHANNEL, 1000, 8);
-    ledcAttachPin(LED1_PIN, LED1_CHANNEL);
-    LED_Set(false);
-}
+const int keys[] = {KEY1, KEY2};
 
 void KEY_Setup() {
-    pinMode(KEY1, INPUT_PULLUP);
-    pinMode(KEY2, INPUT_PULLUP);
+    for (auto &&key : keys) { 
+        pinMode(key, INPUT_PULLUP);
+    }
 }
 
-const int keys[] = {KEY1, KEY2};
-const int key_count = sizeof(keys) / sizeof(keys[0]);
-
 int key_get(void) {
-    for (int i = 0; i < key_count; i++)
-        if (KEY_PRESSED(keys[i]))
-            return keys[i];
+    for (auto &&key : keys) {
+        if (KEY_PRESSED(key))
+            return key;
+    }
     return -1;
 }
 
@@ -130,44 +100,6 @@ void key_check() {
         CHECK_KEY(KEY1, k1_press, k1_long_press);
         CHECK_KEY(KEY2, k2_press, k2_long_press);
     }
-}
-
-bool relay_status = false;
-void Relay_Set(bool sta) {
-    relay_status = sta;
-    RELAY_SET(sta);
-}
-
-bool Relay_Get() {
-    return relay_status;
-}
-
-void Relay_Flip() {
-    Relay_Set(!Relay_Get());
-}
-
-void Relay_Setup() {
-    pinMode(RELAY_PIN, OUTPUT);
-    Relay_Set(false);
-}
-
-bool beeper_status = false;
-bool Beeper_Get() {
-    return beeper_status;
-}
-
-void Beeper_Set(bool sta) {
-    beeper_status = sta;
-    BEEPER_SET(sta);
-}
-
-void Beeper_Setup() {
-    pinMode(BEEPER_PIN, OUTPUT);
-    Beeper_Set(false);
-}
-
-void Beeper_Flip() {
-    Beeper_Set(!Beeper_Get());
 }
 
 void MotorControl_Setup() {

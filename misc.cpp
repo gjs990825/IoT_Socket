@@ -9,12 +9,12 @@ const struct {
     bool (*sta)();
     const char mark;
 } state_marks[] = {
-    { [](){ return task_get_count() != 0; },    'T'},
-    { [](){ return alarm_get_count() != 0; },   'A'},
-    { [](){ return true; },                     '|'},
-    { Relay_Get,                                'R'},
-    { Beeper_Get,                               'B'},
-    { [](){ return LED_Get() != 0; },           'L'},
+    { []() { return task_get_count() != 0; },   'T'},
+    { []() { return alarm_get_count() != 0; },  'A'},
+    { []() { return true; },                    '|'},
+    { []() { return Relay.getBool(); },         'R'},
+    { []() { return Beeper.getBool(); },        'B'},
+    { []() { return Led.getBool(); },           'L'},
 };
 
 String get_state_string() {

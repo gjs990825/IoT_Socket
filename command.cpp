@@ -7,7 +7,8 @@
 #include "alarms.h"
 #include "tasks.h"
 #include "json_helper.h"
-
+#include <queue>
+#include <vector>
 
 typedef enum {
     MSG_NONE,
@@ -102,6 +103,15 @@ int Command_GetMessageCode() {
     return (int)id;
 }
 
+bool arg_is_boolean(String arg) {
+    return arg.equalsIgnoreCase("true") ||
+        arg.equalsIgnoreCase("false");
+}
+
+bool arg_2_boolean(String arg) {
+    return arg.equalsIgnoreCase("true");
+}
+
 int arg_2_int(String arg) {
     if (arg.equalsIgnoreCase("true")) {
         return 1;
@@ -109,6 +119,14 @@ int arg_2_int(String arg) {
         return 0;
     } else {
         return atoi(arg.c_str());
+    }
+}
+
+void output_peripheral_arg_handler(OutputPeripheral *peripheral, String arg) {
+    if (arg_is_boolean(arg)) {
+        peripheral->set(arg_2_boolean(arg));
+    } else {
+        peripheral->set(arg_2_int(arg));
     }
 }
 
@@ -217,7 +235,7 @@ int32_t run_cmd(int32_t argc, char** argv) {
 // led  brightness
 int32_t led_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    LED_Set((uint8_t)arg_2_int(argv[1]));
+    output_peripheral_arg_handler(&Led, argv[1]);
     return 0;
 }
 
@@ -233,7 +251,7 @@ int32_t motor_cmd(int32_t argc, char** argv) {
 // relay    sta
 int32_t relay_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Relay_Set(arg_2_int(argv[1]));
+    output_peripheral_arg_handler(&Relay, argv[1]);
     return 0;
 }
 
@@ -241,17 +259,17 @@ int32_t relay_cmd(int32_t argc, char** argv) {
 // beeper   sta
 int32_t beeper_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
-    Beeper_Set(arg_2_int(argv[1]));
+    output_peripheral_arg_handler(&Beeper, argv[1]);
     return 0;
 }
 
 const struct {
     const char *const name;
-    void (*do_flip)(void);
+    OutputPeripheral *peripheral;
 } flip_list[] = {
-    {"relay"    , Relay_Flip    },
-    {"beeper"   , Beeper_Flip   },
-    {"led"      , LED_Flip      },
+    {"relay"    , &Relay    },
+    {"beeper"   , &Beeper   },
+    {"led"      , &Led      },
 };
 
 // 0    1
@@ -261,7 +279,7 @@ int32_t flip_cmd(int32_t argc, char** argv) {
     String peripheral = argv[1];
     for (auto &&f : flip_list) {
         if (peripheral.equalsIgnoreCase(f.name)) {
-            f.do_flip();
+            f.peripheral->flip();
             return 0;
         }
     }
@@ -537,12 +555,12 @@ int32_t reset_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("default")) {
-        Relay_Set(false);
-        Beeper_Set(false);
-        LED_Set(false);
-        task_clear();
-        alarm_clear();
-        MotorControl_SetSpeed(0);
+        Command_Run("relay 0");
+        Command_Run("beeper 0");
+        Command_Run("led 0");
+        Command_Run("motor 0");
+        Command_Run("alarm clear");
+        Command_Run("task clear");
         log_i("reset to default");
         Command_SetMessage(MSG_RESET_SUCCESS);
     } else if (flag.equalsIgnoreCase("wifi")) {
@@ -645,8 +663,6 @@ void Command_CheckSerial() {
     }
 }
 
-#include <vector>
-
 lwshellr_t Command_RunRaw(String &cmd) {
     if (Command_IsValid(cmd)) {
         return lwshell_input(cmd.c_str(), cmd.length());
@@ -701,9 +717,7 @@ bool Command_Run(String cmd) {
     }
 }
 
-#include <queue>
 std::queue<String> cmd_queue;
-
 constexpr uint8_t MAX_CMD_QUEUE = 10;
 
 bool CommandQueue_Add(String cmd) {

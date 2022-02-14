@@ -16,9 +16,9 @@ char *json_helper_parse_send() {
     jsonDocSend["sensor"]["temperature"] = Sensors::getTemperature();
     jsonDocSend["sensor"]["pressure"] = Sensors::getPressure();
     jsonDocSend["sensor"]["brightness"] = Sensors::getBrightness();
-    jsonDocSend["peripheral"]["relay"] = Relay_Get();
-    jsonDocSend["peripheral"]["led"] = LED_GetBool();
-    jsonDocSend["peripheral"]["beeper"] = Beeper_Get();
+    jsonDocSend["peripheral"]["relay"] = Relay.getBool();
+    jsonDocSend["peripheral"]["led"] = Led.getBool();
+    jsonDocSend["peripheral"]["beeper"] = Beeper.getBool();
     jsonDocSend["peripheral"]["motor"] = MotorControl_GetSpeed();
     jsonDocSend["system"]["time"] = getUnixTime();
     jsonDocSend["system"]["temperature"] = temperatureRead();
