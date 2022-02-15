@@ -99,6 +99,11 @@ bool Infrared_EndCapture() {
 bool Infrared_EndCapture(int n) {
     ASSERT_PRESET_NUM(n);
 
+    if (!ir_is_capturing) {
+        log_e("not capturing");
+        return false;
+    }
+
     ir_is_capturing = false;
     int len = IrReceiver.decodedIRData.rawDataPtr->rawlen - 1;
     if (len <= 5) { // 红外跳变少于5次视为捕获失败 
@@ -110,6 +115,7 @@ bool Infrared_EndCapture(int n) {
     IrReceiver.compensateAndStoreIRResultInArray(ir_code.code);
     ir_code.len = len;
     IrReceiver.end();
+    IrReceiver.decodedIRData.rawDataPtr->rawlen = 0;
     Infrared_UpdatePreset(n, ir_code);
     log_i("capture end, stored in preset %d", n);
     log_i("code[%d] captured", len);
