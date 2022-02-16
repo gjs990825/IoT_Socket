@@ -158,8 +158,7 @@ void output_peripheral_arg_handler(OutputPeripheral *peripheral, String arg) {
 // 0        1       2           3
 // infrared send    preset_id
 // infrared remove  preset_id
-// infrared capture start       preset_id
-// infrared cpature end
+// infrared capture preset_id
 int32_t infrared_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
@@ -171,21 +170,11 @@ int32_t infrared_cmd(int32_t argc, char** argv) {
         Infrared_RemovePreset(atoi(argv[2]), Preferences_Get());
     } else if (flag.equalsIgnoreCase("capture")) {
         CHECK_ARGC(2);
-        flag = argv[2];
-        if (flag.equalsIgnoreCase("start")) {
-            CHECK_ARGC(3);
-            Infrared_StartCapture(atoi(argv[3]));
-            Command_SetMessage(MSG_INFRARED_CAPTURE_START);
-        } else if (flag.equalsIgnoreCase("end")) {
-            if (Infrared_EndCapture()) {
-                Infrared_StorePreset();
-                Command_SetMessage(MSG_INFRARED_CAPTURE_SUCCESS);
-            } else {
-                Command_SetMessage(MSG_INFRARED_CAPTURE_FAIL);
-            }
-        } else {
-            FLAG_NOT_MATCH();
-        }
+        CommandQueue_Add("infrared capture_instant " + String(argv[2]));
+        Command_SetMessage(MSG_INFRARED_CAPTURE_START);
+    } else if (flag.equalsIgnoreCase("capture_instant")) {
+        CHECK_ARGC(2);
+        Infrared_Capture(atoi(argv[2]));
     } else {
         FLAG_NOT_MATCH();
     }

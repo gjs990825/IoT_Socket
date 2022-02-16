@@ -43,7 +43,7 @@ static long timeStamp = 1609430400; // Fri Jan 01 2021 00:00:00 GMT+0800 (China 
 
 // Infrared
 #define INFRARED_CAPTURE_TIMEOUT 5000
-#define INFRARED_MAX_CODE_LENGTH 100
+#define INFRARED_MAX_CODE_LENGTH 150
 
 // Json helper
 #define JSON_BUFFER_SIZE 512

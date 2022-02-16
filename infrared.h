@@ -6,11 +6,7 @@
 #include "conf.h"
 
 bool Infrared_IsCapturing();
-// void Infrared_StartCapture();
-bool Infrared_StartCapture(int n = 0);
-bool Infrared_EndCapture(int n);
-bool Infrared_EndCapture();
-void Infrared_CheckCapture();
+bool Infrared_Capture(int n = 0);
 bool Infrared_SendPreset(int n);
 void Infrared_RestorePreset(Preferences &pref);
 void Infrared_StorePreset();

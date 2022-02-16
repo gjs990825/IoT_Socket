@@ -1,9 +1,10 @@
 #include "infrared.h"
 #include "bsp.h"
 #include <IRremote.h>
+#include <vector>
 
 typedef struct {
-    uint8_t code[INFRARED_MAX_CODE_LENGTH];
+    uint16_t code[INFRARED_MAX_CODE_LENGTH];
     uint8_t len;
 } infrared_code_t;
 
@@ -11,10 +12,6 @@ const String INFRARED_PRESET_PREFIX = "ir_preset_";
 
 infrared_code_t *ir_preset[] = {NULL, NULL, NULL, NULL};
 constexpr int IR_PRESET_NUM = sizeof(ir_preset) / sizeof(ir_preset[0]);
-
-bool ir_is_capturing = false;
-
-bool Infrared_IsCapturing() { return ir_is_capturing; }
 
 #define IS_VALID_PRESET_NUM(N) ((N) >= 0 && (N) < IR_PRESET_NUM)
 
@@ -64,66 +61,65 @@ bool Infrared_SendPreset(int n) {
     return true;
 }
 
-int capture_id = 0;
-unsigned long capture_time = 0;
-
-void Infrared_CheckCapture() {
-    if (Infrared_IsCapturing() && capture_time + INFRARED_CAPTURE_TIMEOUT < millis()) {
-        if (Infrared_EndCapture()) {
-            Infrared_StorePreset();
+void dump_ir_code(infrared_code_t& ir_code) {
+    if (ir_code.len > 1) {
+        Serial.printf("Dump: len:%d\n", ir_code.len);
+        for (int i = 0; i < ir_code.len; i++) {
+            Serial.printf("%u, ", ir_code.code[i]);
         }
+        Serial.println();
+    } else {
+        log_e("Nothing to dump");
     }
 }
 
-bool Infrared_StartCapture(int n) {
-    ASSERT_PRESET_NUM(n);
-
-    capture_id = n; capture_time = millis();
-
-    log_i("infrared capture %d start", capture_id);
-    ir_is_capturing = true;
-    IrReceiver.begin(INFRARED_IN_PIN);
-    return true;
-}
-
-// void Infrared_StartCapture() {
-//     log_i("infrared capture start");
-//     ir_is_capturing = true;
-//     IrReceiver.begin(INFRARED_IN_PIN);
-// }
-
-bool Infrared_EndCapture() {
-    return Infrared_EndCapture(capture_id);
-}
-
-bool Infrared_EndCapture(int n) {
-    ASSERT_PRESET_NUM(n);
-
-    if (!ir_is_capturing) {
-        log_e("not capturing");
-        return false;
-    }
-
-    ir_is_capturing = false;
-    int len = IrReceiver.decodedIRData.rawDataPtr->rawlen - 1;
-    if (len <= 5) { // 红外跳变少于5次视为捕获失败 
-        log_e("capture failed, len:%d", len);
-        IrReceiver.end();
-        return false;
-    }
+infrared_code_t ir_capture(int timeout) {
+    unsigned long t = millis();
     infrared_code_t ir_code;
-    IrReceiver.compensateAndStoreIRResultInArray(ir_code.code);
-    ir_code.len = len;
-    IrReceiver.end();
-    IrReceiver.decodedIRData.rawDataPtr->rawlen = 0;
-    Infrared_UpdatePreset(n, ir_code);
-    log_i("capture end, stored in preset %d", n);
-    log_i("code[%d] captured", len);
-#if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_INFO
-    for (auto &&i : ir_code.code)
-        Serial.printf("%u, ", i);
-    Serial.println();
-#endif
+
+    memset(&ir_code, 0, sizeof(ir_code));
+
+    int last = digitalRead(INFRARED_IN_PIN);
+    int64_t last_t = esp_timer_get_time();
+    int current;
+    int64_t current_t;
+
+    do {
+        do {
+            current = digitalRead(INFRARED_IN_PIN);
+        } while (current == last && t + timeout > millis());
+        current_t = esp_timer_get_time();
+        ir_code.code[ir_code.len++] = (uint16_t)(current_t - last_t);
+        last = current;
+        last_t = current_t;
+    } while (t + timeout > millis());
+
+    if (ir_code.len > 5) {
+        // first and last data is useless;
+        for (int i = 1; i < ir_code.len - 1; i++) {
+            ir_code.code[i - 1] = ir_code.code[i];
+        }
+        ir_code.len -= 2;
+    }
+    return ir_code;
+}
+
+bool Infrared_Capture(int n) {
+    ASSERT_PRESET_NUM(n);
+
+    log_i("infrared capture %d start", n);
+    
+    infrared_code_t ir_captured = ir_capture(INFRARED_CAPTURE_TIMEOUT);
+    if (ir_captured.len >= 5) { // 红外跳变少于5次视为捕获失败
+        log_i("capture end, stored in preset %d", n);
+        dump_ir_code(ir_captured);
+        Infrared_UpdatePreset(n, ir_captured);
+        Infrared_StorePreset(n, Preferences_Get());
+    } else {
+        log_e("capture failed, len:%d", ir_captured.len);
+        return false;
+    }
+
     return true;
 }
 
@@ -137,7 +133,7 @@ void Infrared_RestorePreset(Preferences &pref) {
             Infrared_UpdatePreset(i, ir_code);
             log_i("preset %d restored", i);
         } else {
-            log_i("preset %d invalid", i);
+            log_w("preset %d invalid", i);
         }
     }
 }
@@ -152,10 +148,6 @@ bool Infrared_StorePreset(int n, Preferences &pref) {
         log_i("preset %d stored", n);
     }
     return true;
-}
-
-void Infrared_StorePreset() {
-    Infrared_StorePreset(capture_id, Preferences_Get());
 }
 
 void Infrared_StorePreset(Preferences &pref) {

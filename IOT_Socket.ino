@@ -102,7 +102,6 @@ void loop() {
         task_check();
         alarm_check();
         OLED_UpdateInfo();
-        Infrared_CheckCapture();
     }
         
     TASK(1200) {
