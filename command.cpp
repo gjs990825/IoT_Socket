@@ -1,7 +1,7 @@
 #include "command.h"
 #include "bsp.h"
 #include "lwshell.h"
-#include "sensors.hpp"
+#include "sensors.h"
 #include "infrared.h"
 #include "mqtt_connection.h"
 #include "alarms.h"
@@ -548,7 +548,7 @@ int32_t reset_cmd(int32_t argc, char** argv) {
         Command_Run("relay 0");
         Command_Run("beeper 0");
         Command_Run("led 0");
-        Command_Run("motor 0");
+        Command_Run("pwm 0");
         Command_Run("alarm clear");
         Command_Run("task clear");
         log_i("reset to default");

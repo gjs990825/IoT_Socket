@@ -6,6 +6,71 @@
 #include <Adafruit_GFX.h>
 #include <Preferences.h>
 
+LED::LED() {
+    pinMode(LED1_PIN, OUTPUT);
+    ledcSetup(LED1_CHANNEL, 1000, 8);
+    ledcAttachPin(LED1_PIN, LED1_CHANNEL);
+    set(false);
+}
+
+void LED::set(int v) {
+    output = constrain(v, 0, 0xFF);
+    ledcWrite(LED1_CHANNEL, output);
+}
+
+void LED::set(bool v) { 
+    set(v == false ? 0 : 255);
+}
+
+RELAY::RELAY() {
+    pinMode(RELAY_PIN, OUTPUT);
+    set(false);
+};
+
+void RELAY::set(int v) { set(!!v); }
+
+void RELAY::set(bool v) { 
+    output = v;
+    RELAY_SET(output);
+}
+
+BEEPER::BEEPER() {
+    pinMode(BEEPER_PIN, OUTPUT);
+    set(false);
+};
+
+void BEEPER::set(int v) { set(!!v); }
+
+void BEEPER::set(bool v) { 
+    output = v;
+    BEEPER_SET(output);
+}
+
+PWM::PWM() {
+    pinMode(PWM_OUT_PIN, OUTPUT);
+    pinMode(MOTOR_CTL_A_PIN, OUTPUT);
+    pinMode(MOTOR_CTL_B_PIN, OUTPUT);
+    ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
+    ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
+}
+
+void PWM::set(int v) {
+    output = constrain(v, -100, 100);
+    bool is_positive = output >= 0;
+    digitalWrite(MOTOR_CTL_A_PIN, is_positive);
+    digitalWrite(MOTOR_CTL_B_PIN, !is_positive);
+    // 0 ~ 100 => 0 ~ 2^10
+    uint32_t duty = (uint32_t)map(abs(output), 0, 100, 0, 0x3FF);
+    ledcWrite(MOTOR_PWM_CHANNEL, duty);
+}
+
+void PWM::set(bool v) { set(v ? 100 : 0); }
+
+LED Led;
+RELAY Relay;
+BEEPER Beeper;
+PWM Pwm;
+
 const int keys[] = {KEY1, KEY2};
 
 void KEY_Setup() {

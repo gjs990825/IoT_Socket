@@ -56,78 +56,37 @@ private:
     const uint8_t LED1_CHANNEL = 0;
 
 public:
-    LED() {
-        pinMode(LED1_PIN, OUTPUT);
-        ledcSetup(LED1_CHANNEL, 1000, 8);
-        ledcAttachPin(LED1_PIN, LED1_CHANNEL);
-        set(false);
-    }
-
-    void set(int v) {
-        output = constrain(v, 0, 0xFF);
-        ledcWrite(LED1_CHANNEL, output);
-    }
-    void set(bool v) { 
-        set(v == false ? 0 : 255);
-    }
+    LED();
+    void set(int v);
+    void set(bool v);
 };
 
 class RELAY: public OutputPeripheral {
 public:
-    RELAY() {
-        pinMode(RELAY_PIN, OUTPUT);
-        set(false);
-    };
-
-    void set(int v) { set(!!v); }
-    void set(bool v) { 
-        output = v;
-        RELAY_SET(output);
-    }
+    RELAY();
+    void set(int v);
+    void set(bool v);
 };
 
 class BEEPER: public OutputPeripheral {
 public:
-    BEEPER() {
-        pinMode(BEEPER_PIN, OUTPUT);
-        set(false);
-    };
-
-    void set(int v) { set(!!v); }
-    void set(bool v) { 
-        output = v;
-        BEEPER_SET(output);
-    }
+    BEEPER();
+    void set(int v);
+    void set(bool v);
 };
 
 class PWM: public OutputPeripheral
 {
 public:
-    PWM() {
-        pinMode(PWM_OUT_PIN, OUTPUT);
-        pinMode(MOTOR_CTL_A_PIN, OUTPUT);
-        pinMode(MOTOR_CTL_B_PIN, OUTPUT);
-        ledcSetup(MOTOR_PWM_CHANNEL, 15000, 10); // 15KHz, 10bits
-        ledcAttachPin(PWM_OUT_PIN, MOTOR_PWM_CHANNEL);
-    }
-
-    void set(int v) {
-        output = constrain(v, -100, 100);
-        bool is_positive = output >= 0;
-        digitalWrite(MOTOR_CTL_A_PIN, is_positive);
-        digitalWrite(MOTOR_CTL_B_PIN, !is_positive);
-        // 0 ~ 100 => 0 ~ 2^10
-        uint32_t duty = (uint32_t)map(abs(output), 0, 100, 0, 0x3FF);
-        ledcWrite(MOTOR_PWM_CHANNEL, duty);
-    }
-
-    void set(bool v) { set(v ? 100 : 0); }
+    PWM();
+    void set(int v);
+    void set(bool v);
 };
 
-static LED Led;
-static RELAY Relay;
-static BEEPER Beeper;
-static PWM Pwm;
+extern LED Led;
+extern RELAY Relay;
+extern BEEPER Beeper;
+extern PWM Pwm;
 
 typedef enum {
     KEY_RELEASE,

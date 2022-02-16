@@ -1,7 +1,7 @@
 #include "json_helper.h"
 #include "conf.h"
 #include "bsp.h"
-#include "sensors.hpp"
+#include "sensors.h"
 
 DynamicJsonDocument jsonDocSend(ARDUINOJSON_SEND_BUFFER_SIZE);
 DynamicJsonDocument jsonDocAck(ARDUINOJSON_ACK_BUFFER_SIZE);

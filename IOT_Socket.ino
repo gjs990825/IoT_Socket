@@ -1,5 +1,5 @@
 #include "bsp.h"
-#include "sensors.hpp"
+#include "sensors.h"
 #include "infrared.h"
 #include "command.h"
 #include "mqtt_connection.h"
