@@ -2,7 +2,6 @@
 #include "sensors.h"
 #include "infrared.h"
 #include "command.h"
-#include "bluetooth_connection.h"
 #include "json_helper.h"
 #include "tasks.h"
 #include "alarms.h"
@@ -10,7 +9,8 @@
 
 #include "connection.h"
 
-MqttConnection* mqttConnection = NULL;
+MqttConnection* mqttConnection;
+BluetoothConnection* bluetoothConnection;
 
 
 void key1_press() {
@@ -50,16 +50,16 @@ void setup() {
     WiFi_RestoreSettings(pref);
     TimeStamp_Restore(pref);
 
+    // Command system
+    Command_Init();
+
     // Connections
     WIFI_Setup();
     NTP_Setup();
-    Bluetooth_Setup();
-
+    
     mqttConnection = new MqttConnection(Command_Run, Command_GetMessageCode);
+    bluetoothConnection = new BluetoothConnection(Command_Run, Command_GetMessageCode);
 
-    // Command system
-    Command_Init();
-    Bluetooth_SetCommandTools(Command_Run, Command_GetMessageCode);
 
     log_i("System setup finished");
 }
@@ -71,7 +71,7 @@ void OLED_UpdateInfo() {
     OLED.print(LocalTime_GetString());
 
     char indicator;
-    if (Bluetooth_IsConnected()) {
+    if (bluetoothConnection->isConnected()) {
         indicator = 'B';
     } else if (mqttConnection->isConnected()) {
         indicator = 'M';
@@ -108,13 +108,10 @@ void loop() {
     }
         
     TASK(1200) {
-        if (Bluetooth_IsConnected() || WIFI_IsConnected()) {
-            const char* buffer = json_helper_parse_report();;
-            if (Bluetooth_IsConnected()) {
-                Bluetooth_Send(buffer);
-            } else {
-                mqttConnection->report();
-            }
+        if (bluetoothConnection->isConnected()) {
+            bluetoothConnection->report();
+        } else if (mqttConnection->isConnected()) {
+            mqttConnection->report();
         }
     }
 
