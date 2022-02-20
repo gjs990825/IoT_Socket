@@ -49,7 +49,7 @@ void Bluetooth_Send(const char *payload) {
 }
 
 void Bluetooth_Send() {
-    Bluetooth_Send(json_helper_parse_send());
+    Bluetooth_Send(json_helper_parse_report());
 }
 
 void Bluetooth_Ack(bool status, int msg_code) {

@@ -3,7 +3,6 @@
 #include "lwshell.h"
 #include "sensors.h"
 #include "infrared.h"
-#include "mqtt_connection.h"
 #include "alarms.h"
 #include "tasks.h"
 #include "json_helper.h"
@@ -526,19 +525,6 @@ int32_t settings_cmd(int32_t argc, char** argv) {
     return 0;
 }
 
-// 0    1
-// mqtt send
-int32_t mqtt_cmd(int32_t argc, char** argv) {
-    CHECK_ARGC(1);
-    String flag = argv[1];
-    if (flag.equalsIgnoreCase("send")) {
-        MQTT_Send();
-    } else {
-        FLAG_NOT_MATCH();
-    }
-    return 0;
-}
-
 // 0        1
 // reset    default
 int32_t reset_cmd(int32_t argc, char** argv) {
@@ -591,7 +577,6 @@ const struct {
     {"beeper",          beeper_cmd,         "Beeper control"            },
     {"alarm",           alarm_cmd,          "Alarm setting"             },
     {"task",            task_cmd,           "Task setting"              },
-    {"mqtt",            mqtt_cmd,           "MQTT send"                 },
     {"flip",            flip_cmd,           "Flip something"            },
     {"reset",           reset_cmd,          "Reset something"           },
     {"echo",            echo_cmd,           "Echo every input"          },

@@ -12,7 +12,7 @@ char *json_helper_serialize(DynamicJsonDocument &jsonDoc) {
     return json_buffer;
 }
 
-char *json_helper_parse_send() {
+char *json_helper_parse_report() {
     jsonDocSend["sensor"]["temperature"] = Sensors.getTemperature();
     jsonDocSend["sensor"]["pressure"] = Sensors.getPressure();
     jsonDocSend["sensor"]["brightness"] = Sensors.getBrightness();
