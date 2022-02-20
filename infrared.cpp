@@ -5,7 +5,7 @@
 
 typedef struct {
     uint16_t code[INFRARED_MAX_CODE_LENGTH];
-    uint8_t len;
+    uint16_t len;
 } infrared_code_t;
 
 const String INFRARED_PRESET_PREFIX = "ir_preset_";
@@ -74,15 +74,12 @@ void dump_ir_code(infrared_code_t& ir_code) {
 }
 
 infrared_code_t ir_capture(int timeout) {
-    unsigned long t = millis();
     infrared_code_t ir_code;
+    memset(&ir_code, 0, sizeof(infrared_code_t));
 
-    memset(&ir_code, 0, sizeof(ir_code));
-
-    int last = digitalRead(INFRARED_IN_PIN);
-    int64_t last_t = esp_timer_get_time();
-    int current;
-    int64_t current_t;
+    unsigned long t = millis();
+    int current, last = digitalRead(INFRARED_IN_PIN);
+    int64_t current_t, last_t = esp_timer_get_time();
 
     do {
         do {
@@ -94,12 +91,13 @@ infrared_code_t ir_capture(int timeout) {
         last_t = current_t;
     } while (t + timeout > millis());
 
-    if (ir_code.len > 5) {
-        // first and last data is useless;
+    if (ir_code.len > 5) { // first and last data is useless;
         for (int i = 1; i < ir_code.len - 1; i++) {
             ir_code.code[i - 1] = ir_code.code[i];
         }
         ir_code.len -= 2;
+    } else {
+        ir_code.len = 0;
     }
     return ir_code;
 }
@@ -108,19 +106,20 @@ bool Infrared_Capture(int n) {
     ASSERT_PRESET_NUM(n);
 
     log_i("infrared capture %d start", n);
-    
+    OLED_FullScreenMsg("Infrared Capturing...");    
     infrared_code_t ir_captured = ir_capture(INFRARED_CAPTURE_TIMEOUT);
-    if (ir_captured.len >= 5) { // 红外跳变少于5次视为捕获失败
+    bool res = ir_captured.len >= 5; // 红外跳变少于5次视为捕获失败
+    OLED_FullScreenMsg(res ? "SUCCESS!" : "FAIL!");
+    if (res) { 
         log_i("capture end, stored in preset %d", n);
         dump_ir_code(ir_captured);
         Infrared_UpdatePreset(n, ir_captured);
         Infrared_StorePreset(n, Preferences_Get());
     } else {
         log_e("capture failed, len:%d", ir_captured.len);
-        return false;
     }
-
-    return true;
+    delay(500);
+    return res;
 }
 
 void Infrared_RestorePreset(Preferences &pref) {
@@ -146,8 +145,10 @@ bool Infrared_StorePreset(int n, Preferences &pref) {
                       &ir_code,
                       sizeof(infrared_code_t));
         log_i("preset %d stored", n);
+        return true;
+    } else {
+        return false;
     }
-    return true;
 }
 
 void Infrared_StorePreset(Preferences &pref) {

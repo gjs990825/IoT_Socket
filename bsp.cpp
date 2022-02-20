@@ -179,6 +179,14 @@ void OLED_Setup() {
     OLED.display();
 }
 
+void OLED_FullScreenMsg(const char * msg) {
+    OLED.clearDisplay();
+    OLED.setCursor(0, 0);
+    OLED.setTextSize(2);
+    OLED.print(msg);
+    OLED.display();
+}
+
 Preferences preferences;
 
 void Preferences_Init() {

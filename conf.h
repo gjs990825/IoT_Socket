@@ -42,8 +42,8 @@ static const int DAYLIGHT_OFFSET = 0;
 static long timeStamp = 1609430400; // Fri Jan 01 2021 00:00:00 GMT+0800 (China Standard Time)
 
 // Infrared
-#define INFRARED_CAPTURE_TIMEOUT 5000
-#define INFRARED_MAX_CODE_LENGTH 150
+#define INFRARED_CAPTURE_TIMEOUT 2000
+#define INFRARED_MAX_CODE_LENGTH 500
 
 // Json helper
 #define JSON_BUFFER_SIZE 512

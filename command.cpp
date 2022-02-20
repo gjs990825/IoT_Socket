@@ -665,7 +665,7 @@ bool Command_Run(std::vector<String> &cmd_list) {
     bool ret = true;
     int msg_code = MSG_NONE;
     for (auto &&cmd : cmd_list) {
-        ret = ret && (Command_RunRaw(cmd) == lwshellOK);
+        ret &= (Command_RunRaw(cmd) == lwshellOK);
         msg_code = max(msg_code, Command_GetMessageCode());
     }
     Command_SetMessage((msg_code_t)msg_code);
@@ -731,9 +731,6 @@ bool CommandQueue_Add(std::vector<String> &cmd_list) {
 void CommandQueue_Handle() {
     if (cmd_queue.empty()) 
         return;
-    if (!cmd_queue.empty()) {
-        String cmd = cmd_queue.front();
-        cmd_queue.pop();
-        Command_Run(cmd);
-    }
+    Command_Run(cmd_queue.front());
+    cmd_queue.pop();
 }

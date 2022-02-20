@@ -110,6 +110,8 @@ void key_set_handler(key_handler k1,
 void key_check();
 
 void OLED_Setup();
+void OLED_FullScreenMsg(const char * msg = "");
+
 uint16_t Photoresistor_GetRaw();
 
 void Preferences_Init();
