@@ -8,6 +8,7 @@
 #include <WiFiClient.h>
 #include <MQTTClient.h>
 #include <BluetoothSerial.h>
+#include <vector>
 
 
 class Connection {
@@ -27,10 +28,14 @@ public:
     virtual bool isConnected() = 0;
     void onCommandReceived(String cmd_string);
     void report();
+    virtual String getName() = 0;
+    virtual void check() {};
+    virtual void reconnect() {};
 };
 
 class MqttConnection: public Connection {
 private:
+    String name = "Mqtt";
     WiFiClient net;
     MQTTClient client = MQTTClient(MQTT_CLIENT_BUFFER_SIZE);
 
@@ -47,16 +52,33 @@ public:
     MqttConnection(bool (*command_handler)(String), int (*message_code_getter)(void));
     bool isConnected();
     void check();
+    String getName();
+    void reconnect();
 };
 
 class BluetoothConnection: public Connection {
 private:
+    String name = "Bluetooth";
     BluetoothSerial SerialBT;
     void sendRaw(String topic, const char *payload);
 
 public:
     BluetoothConnection(bool (*command_handler)(String), int (*message_code_getter)(void));
     bool isConnected();
+    String getName();
+};
+
+class ConnectionManager {
+private:
+    std::vector<Connection*> connections;
+    Connection* currentConnection;
+    Connection* getConnection();
+
+public:
+    ConnectionManager(bool (*command_handler)(String), int (*message_code_getter)(void));
+    void report();
+    void check();
+    bool isConnected(const char *name);
 };
 
 #endif // _CONNECTION_H_

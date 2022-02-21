@@ -6,12 +6,9 @@
 #include "tasks.h"
 #include "alarms.h"
 #include "misc.h"
-
 #include "connection.h"
 
-MqttConnection* mqttConnection;
-BluetoothConnection* bluetoothConnection;
-
+ConnectionManager* connectionManager = NULL;
 
 void key1_press() {
     log_i("key1 press");
@@ -56,10 +53,7 @@ void setup() {
     // Connections
     WIFI_Setup();
     NTP_Setup();
-    
-    mqttConnection = new MqttConnection(Command_Run, Command_GetMessageCode);
-    bluetoothConnection = new BluetoothConnection(Command_Run, Command_GetMessageCode);
-
+    connectionManager = new ConnectionManager(Command_Run, Command_GetMessageCode);
 
     log_i("System setup finished");
 }
@@ -71,9 +65,9 @@ void OLED_UpdateInfo() {
     OLED.print(LocalTime_GetString());
 
     char indicator;
-    if (bluetoothConnection->isConnected()) {
+    if (connectionManager->isConnected("Bluetooth")) {
         indicator = 'B';
-    } else if (mqttConnection->isConnected()) {
+    } else if (connectionManager->isConnected("Mqtt")) {
         indicator = 'M';
     } else if (WIFI_IsConnected()) {
         indicator = '!';
@@ -95,7 +89,7 @@ void loop() {
     }
 
     TASK(100) {
-        mqttConnection->check();
+        connectionManager->check();
         Command_CheckSerial();
         CommandQueue_Handle();
     }
@@ -108,11 +102,7 @@ void loop() {
     }
         
     TASK(1200) {
-        if (bluetoothConnection->isConnected()) {
-            bluetoothConnection->report();
-        } else if (mqttConnection->isConnected()) {
-            mqttConnection->report();
-        }
+        connectionManager->report();
     }
 
     TASK(1000 * 60 * 30) {

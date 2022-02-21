@@ -59,6 +59,7 @@ MqttConnection::MqttConnection(bool (*command_handler)(String), int (*message_co
             log_w("unknown topic:%s", topic.c_str());
         }
     });
+    connect();
 }
 
 bool MqttConnection::isConnected() { return client.connected(); }
@@ -67,6 +68,14 @@ void MqttConnection::check() {
     if (!client.loop()) {
         connect();
     }
+}
+
+String MqttConnection::getName() {
+    return name;
+}
+
+void MqttConnection::reconnect() {
+    connect();
 }
 
 void BluetoothConnection::sendRaw(String topic, const char *payload) {
@@ -92,3 +101,49 @@ BluetoothConnection::BluetoothConnection(bool (*command_handler)(String), int (*
 }
 
 bool BluetoothConnection::isConnected() { return SerialBT.connected(); }
+
+String BluetoothConnection::getName() {
+    return name;
+}
+
+Connection* ConnectionManager::getConnection() {
+    for (auto &&conn : connections) {
+        if (conn->isConnected()) {
+            return conn;
+        }
+    }
+    return NULL;
+}
+
+ConnectionManager::ConnectionManager(bool (*command_handler)(String), int (*message_code_getter)(void)) {
+    connections.push_back(new BluetoothConnection(command_handler, message_code_getter));
+    connections.push_back(new MqttConnection(command_handler, message_code_getter));
+    currentConnection = getConnection();
+}
+
+void ConnectionManager::report() {
+    currentConnection = getConnection();
+    if (currentConnection != NULL) {
+        currentConnection->report();
+    } else {
+        log_w("no available connection, try to reconnect");
+        for (auto &&conn : connections) {
+            conn->reconnect();
+        }
+    }
+}
+
+void ConnectionManager::check() {
+    if (currentConnection != NULL) {
+        currentConnection->check();
+    }
+}
+
+bool ConnectionManager::isConnected(const char *name) {
+    for (auto &&conn : connections) {
+        if (conn->getName().equals(name)) {
+            return conn->isConnected();
+        }
+    }
+    return false;
+}
