@@ -25,9 +25,9 @@ public:
     const String TOPIC_ACK = DEVICE_NAME + "/Ack";
 
     Connection(bool (*command_handler)(String), int (*message_code_getter)(void));
-    virtual bool isConnected() = 0;
     void onCommandReceived(String cmd_string);
     void report();
+    virtual bool isConnected() = 0;
     virtual String getName() = 0;
     virtual void check() {};
     virtual void reconnect() {};

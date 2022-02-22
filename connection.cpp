@@ -17,8 +17,7 @@ void Connection::onCommandReceived(String cmd_string) {
 
     if (status) {
         report();
-    }
-    else {
+    } else {
         log_e("cmd:\"%s\" execute failed", cmd_string.c_str());
     }
 }
@@ -44,7 +43,7 @@ bool MqttConnection::connect() {
         return false;
     }
     log_i("connected");
-    client.subscribe(MQTT_TOPIC_COMMAND, QOS_EXACTLY_ONCE);
+    client.subscribe(TOPIC_COMMAND, QOS_EXACTLY_ONCE);
     return true;
 }
 

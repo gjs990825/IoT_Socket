@@ -27,10 +27,6 @@ static const char *const MQTT_CLIENT_ID = DEVICE_NAME.c_str();
 static const char *const MQTT_USER_NAME = "esp32";
 static const char *const MQTT_PASSWORD = "password";
 
-static const String MQTT_TOPIC_COMMAND = DEVICE_NAME + "/Command";
-static const String MQTT_TOPIC_STATE = DEVICE_NAME + "/State";
-static const String MQTT_TOPIC_ACK = DEVICE_NAME + "/Ack";
-
 // BT
 static const String BLUETOOTH_NAME = DEVICE_NAME;
 
