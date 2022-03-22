@@ -11,7 +11,7 @@ For `IoT Socket Android App`, see [**this repo**](https://github.com/gjs990825/I
 ## Schematic
 
 <div>
-  <img align="center" src="./docs/images/Schematic_ESP32_Dev_2022-02-22.png"
+  <img align="center" src="./docs/images/Schematic_ESP32_Dev_2022-03-03.png"
     alt="Schematic">
 </div>
 <br />

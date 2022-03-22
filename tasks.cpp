@@ -33,12 +33,12 @@ bool task_remove(String cmd) {
 
 void task_check() {
     // Command_OutputControl(false);
-    for (auto &&task : tasks)
+    for (auto &&task : tasks) {
         Command_Run(task);
+    }
     // Command_OutputControl(true);
 }
 
 std::vector<String> task_get() { return tasks; }
 
 int task_get_count() { return tasks.size(); }
-
