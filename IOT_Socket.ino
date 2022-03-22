@@ -17,15 +17,18 @@ void key1_press() {
 
 void key1_long_press() {
     log_i("key1 long press");
+    Command_Run("flip pwm");
 }
 
 void key2_press() {
     log_i("key2 press");
-    Command_Run("reset default");
+    Command_Run("alarm clear");
+    Command_Run("task clear");
 }
 
 void key2_long_press() {
     log_i("key2 long press");
+    Command_Run("reset default");
 }
 
 void setup() {

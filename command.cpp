@@ -531,12 +531,12 @@ int32_t reset_cmd(int32_t argc, char** argv) {
     CHECK_ARGC(1);
     String flag = argv[1];
     if (flag.equalsIgnoreCase("default")) {
-        Command_Run("relay 0");
-        Command_Run("beeper 0");
-        Command_Run("led 0");
-        Command_Run("pwm 0");
-        Command_Run("alarm clear");
-        Command_Run("task clear");
+        CommandQueue_Add("relay 0");
+        CommandQueue_Add("beeper 0");
+        CommandQueue_Add("led 0");
+        CommandQueue_Add("pwm 0");
+        CommandQueue_Add("alarm clear");
+        CommandQueue_Add("task clear");
         log_i("reset to default");
         Command_SetMessage(MSG_RESET_SUCCESS);
     } else if (flag.equalsIgnoreCase("wifi")) {
